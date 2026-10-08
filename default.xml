@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote name="github" fetch="https://github.com"/>
+  <remote name="oe" fetch="http://git.openembedded.org"/>
+  <remote name="OpenSTLinux" fetch="https://github.com/STMicroelectronics"/>
+  
+  <default remote="OpenSTLinux"/>
+  
+  <project name="bitbake" path="openembedded-core/bitbake" remote="oe" revision="b2404004135b669f8258c85c7b5aed4570a805c7"/>
+  <project name="openembedded-core" path="openembedded-core" remote="oe" revision="52380df998b3a8fe6a091f8547434a3231320a8e"/>
+  
+  <project name="meta-openembedded" path="meta-openembedded" remote="oe" revision="5124ac4a658899158f4a7a2ddf1d2ca931ec7d0e"/>
+  <project name="meta-st-openstlinux" path="meta-st-openstlinux" revision="b0316f706bcf34e8449d43aba3c630030f2cc366"/>
+  <project name="meta-st-stm32mp" path="meta-st-stm32mp" revision="49046b2a0ad4dc29117025c94838b9befff86f23"/>
+  <project name="meta-st-stm32mp-addons" path="meta-st-stm32mp-addons" revision="ad667afe266eb1ca706bf92ea6d99cc9ec74d662"/>
+  <project name="meta-st-scripts" path="scripts" revision="8826802b453ef2ead61b07c7bc5ab525a405df04"/>
+</manifest>

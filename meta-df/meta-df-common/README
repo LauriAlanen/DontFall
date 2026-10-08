@@ -1,0 +1,17 @@
+meta-df-common
+==============
+
+Machine-agnostic part of the DontFall custom layer (meta-df).
+
+Everything that is shared between all supported machines belongs here:
+custom distribution configuration, common recipes and image features.
+
+Contents:
+
+  conf/templates/default/          bblayers.conf/local.conf template
+                                   used by oe-init-build-env
+  recipes-core/images/df-image-minimal.bb
+                                   minimal DontFall image target
+
+Machine-specific support lives in the sibling layers
+(e.g. meta-df-stm32mp157c-dk2).

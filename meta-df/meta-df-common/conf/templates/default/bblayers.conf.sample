@@ -1,0 +1,26 @@
+# LAYER_CONF_VERSION is increased each time build/conf/bblayers.conf
+# changes incompatibly
+LCONF_VERSION = "7"
+
+BBPATH = "${TOPDIR}"
+BBFILES ?= ""
+
+# Layers are checked out at the workspace root, next to openembedded-core
+WSROOT = "##OEROOT##/.."
+
+BBLAYERS ?= " \
+    ##OEROOT##/meta \
+    ${WSROOT}/meta-openembedded/meta-oe \
+    ${WSROOT}/meta-openembedded/meta-python \
+    ${WSROOT}/meta-openembedded/meta-networking \
+    ${WSROOT}/meta-openembedded/meta-multimedia \
+    ${WSROOT}/meta-openembedded/meta-gnome \
+    ${WSROOT}/meta-openembedded/meta-webserver \
+    ${WSROOT}/meta-st-stm32mp \
+    ${WSROOT}/meta-st-openstlinux \
+    ${WSROOT}/meta-df/meta-df-common \
+    ${WSROOT}/meta-df/meta-df-stm32mp157c-dk2 \
+    "
+
+# Optional: ST addons layer for CubeMX-generated board configurations
+#BBLAYERS += "${WSROOT}/meta-st-stm32mp-addons"

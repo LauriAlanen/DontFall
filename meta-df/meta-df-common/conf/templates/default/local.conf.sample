@@ -1,0 +1,34 @@
+#
+# DontFall build configuration (stm32mp157c-dk2)
+#
+
+MACHINE ??= "stm32mp157c-dk2"
+DISTRO ??= "openstlinux-weston"
+
+PACKAGE_CLASSES ?= "package_ipk"
+EXTRA_IMAGE_FEATURES ?= "debug-tweaks"
+USER_CLASSES ?= "buildstats"
+
+# GPU binary packages (gcnano-userland) require accepting the ST EULA.
+# Read it first: meta-st-stm32mp/conf/eula/stm32mp15-disco
+#ACCEPT_EULA_stm32mp157c-dk2 = "1"
+
+# Generate a raw sdcard image (wic) on image build
+#WKS_IMAGE_FSTYPES += "wic wic.bz2 wic.bmap"
+#WKS_FILE += "${OPTEEMIN_WIC_FILE}"
+
+# Share downloads and sstate between build directories
+#DL_DIR = "${TOPDIR}/../downloads"
+#SSTATE_DIR = "${TOPDIR}/../sstate-cache"
+
+BB_DISKMON_DIRS ??= "\
+    STOPTASKS,${TMPDIR},1G,100K \
+    STOPTASKS,${DL_DIR},1G,100K \
+    STOPTASKS,${SSTATE_DIR},1G,100K \
+    STOPTASKS,/tmp,100M,100K \
+    HALT,${TMPDIR},100M,1K \
+    HALT,${DL_DIR},100M,1K \
+    HALT,${SSTATE_DIR},100M,1K \
+    HALT,/tmp,10M,1K"
+
+CONF_VERSION = "2"

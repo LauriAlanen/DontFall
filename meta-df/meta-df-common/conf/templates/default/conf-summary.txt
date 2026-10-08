@@ -1,0 +1,3 @@
+This is the DontFall build configuration for the STM32MP157C-DK2.
+Layers: openembedded-core, meta-openembedded, meta-st-stm32mp,
+meta-st-openstlinux, meta-df-common, meta-df-stm32mp157c-dk2.

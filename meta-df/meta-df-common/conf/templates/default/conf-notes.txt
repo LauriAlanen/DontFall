@@ -1,0 +1,13 @@
+DontFall build environment for stm32mp157c-dk2 is ready.
+
+Common targets:
+
+  bitbake df-image-minimal    # our minimal bootable image
+  bitbake st-image-core       # ST minimal console image
+  bitbake st-image-weston     # full OpenSTLinux Weston image
+
+Useful commands:
+
+  bitbake-layers show-layers  # list enabled layers
+  bitbake -e <recipe>         # inspect recipe environment
+  devtool modify <recipe>     # patch a recipe's sources

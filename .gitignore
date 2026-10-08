@@ -1,0 +1,11 @@
+# This repo doubles as the repo(1) workspace root: everything synced by
+# `repo sync` lands in the top-level directory. Ignore it all and only
+# whitelist files that belong to the manifest repo itself.
+/*
+!.gitignore
+!/default.xml
+!/init.sh
+!/envsetup.sh
+!/README.md
+!/LICENSE*
+!/meta-df/

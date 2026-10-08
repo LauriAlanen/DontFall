@@ -1,0 +1,20 @@
+meta-df-stm32mp157c-dk2
+=======================
+
+Machine-specific part of the DontFall custom layer (meta-df) for the
+STM32MP157C-DK2 Discovery kit.
+
+It provides the `stm32mp157c-dk2` machine configuration, derived from the
+meta-st-stm32mp `stm32mp15-disco` machine but building the
+`stm32mp157c-dk2` devicetrees, plus the matching WIC kickstart files.
+
+Usage:
+
+  * add `meta-df/meta-df-stm32mp157c-dk2` (and `meta-df/meta-df-common`)
+    to BBLAYERS
+  * build with `MACHINE = "stm32mp157c-dk2"`
+
+To also generate a raw sdcard image, set in local.conf:
+
+  WKS_IMAGE_FSTYPES += "wic wic.bz2 wic.bmap"
+  WKS_FILE += "${OPTEEMIN_WIC_FILE}"

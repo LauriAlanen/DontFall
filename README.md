@@ -71,6 +71,18 @@ signed boot partitions (TF-A/FIP), so the secure-boot chain stays intact.
 `devtool` also works over this connection, e.g.
 `./build.sh devtool deploy-target <recipe> root@<board-ip>`.
 
+## WiFi
+
+Set `DF_WIFI_SSID`/`DF_WIFI_PASSWORD` in `conf/local.conf` to have the board
+join a network on first boot. A `wpa-supplicant` bbappend in `meta-df-common`
+generates `/etc/wpa_supplicant/wpa_supplicant-wlan0.conf` (passphrase stored
+as hashed PSK, not plaintext) and enables `wpa_supplicant@wlan0.service`;
+`systemd-networkd` DHCPs `wlan0` automatically. Unset `DF_WIFI_SSID` disables
+it entirely.
+
+Changing the vars + re-deploying works without reflashing:
+`./deploy.sh <board-ip> wpa-supplicant --run 'systemctl restart wpa_supplicant@wlan0'`.
+
 ## Custom layers
 
 `meta-df/` holds the project layers — see `meta-df/README.md`.

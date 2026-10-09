@@ -37,6 +37,12 @@ SIGN_KEY_PASS = "${@open('${TOPDIR}/../stm32mp15x-keys/passphrase.txt').read().s
 #EXTERNALSRC:pn-dontfall-app = "${TOPDIR}/../dontfall-app"
 #EXTERNALSRC_BUILD:pn-dontfall-app = "${TOPDIR}/../dontfall-app-build"
 
+# WiFi auto-connect: the board joins this network on boot (wpa-supplicant
+# bbappend in meta-df-common; the passphrase lands in the image as a hashed
+# PSK, never plaintext). Leave unset to disable.
+#DF_WIFI_SSID = "myssid"
+#DF_WIFI_PASSWORD = "mypassword"   # empty = open network
+
 # Share downloads and sstate between build directories
 # (and between host and container builds - the container bind-mounts the
 # workspace at the same absolute path)

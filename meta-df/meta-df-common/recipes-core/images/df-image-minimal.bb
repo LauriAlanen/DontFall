@@ -7,3 +7,8 @@ inherit core-image
 
 # ssh access for development; dropbear keeps the footprint small
 IMAGE_FEATURES += "ssh-server-dropbear"
+
+# Target-side tools for ./deploy.sh (live deploy over ssh) and for
+# devtool deploy-target: rsync receives file trees, openssh-sftp-server +
+# openssh-scp let dropbear accept sftp/scp (devtool deploys via scp).
+IMAGE_INSTALL += "rsync openssh-sftp-server openssh-scp"

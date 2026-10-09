@@ -1,0 +1,27 @@
+# Dev shell container for the DontFall Yocto workspace.
+#
+#   docker compose run --rm yocto            # interactive shell
+#   docker compose run --rm yocto bash -lc 'source ./envsetup.sh && bitbake df-image-minimal'
+#
+# The workspace is bind-mounted at the SAME absolute path it has on the
+# host, so conf paths, downloads/ and sstate-cache/ stay valid and host
+# and container builds share one build directory. Override WORKSPACE_ROOT
+# if your checkout lives somewhere else:
+#
+#   WORKSPACE_ROOT=/path/to/DontFall docker compose run --rm yocto
+#
+# The image itself is built by ./init.sh (or: docker compose build).
+services:
+  yocto:
+    image: dontfall-yocto:latest
+    build:
+      context: .
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    working_dir: ${WORKSPACE_ROOT:-/home/lauala-unix/Projects/DontFall}
+    volumes:
+      - ${WORKSPACE_ROOT:-/home/lauala-unix/Projects/DontFall}:${WORKSPACE_ROOT:-/home/lauala-unix/Projects/DontFall}
+    stdin_open: true
+    tty: true
+    init: true

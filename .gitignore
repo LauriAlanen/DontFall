@@ -9,6 +9,7 @@
 !/Dockerfile
 !/docker-compose.yml
 !/docker-entrypoint.sh
+!/build.sh
 !/README.md
 !/AGENTS.md
 !/LICENSE*

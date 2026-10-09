@@ -18,8 +18,10 @@ USER_CLASSES ?= "buildstats"
 #WKS_FILE += "${OPTEEMIN_WIC_FILE}"
 
 # Share downloads and sstate between build directories
-#DL_DIR = "${TOPDIR}/../downloads"
-#SSTATE_DIR = "${TOPDIR}/../sstate-cache"
+# (and between host and container builds - the container bind-mounts the
+# workspace at the same absolute path)
+DL_DIR = "${TOPDIR}/../downloads"
+SSTATE_DIR = "${TOPDIR}/../sstate-cache"
 
 BB_DISKMON_DIRS ??= "\
     STOPTASKS,${TMPDIR},1G,100K \

@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         bc bison flex libssl-dev libncurses-dev libyaml-dev \
         parted dosfstools mtools rsync \
         ca-certificates curl sudo xterm \
+        libglib2.0-0 libpcre2-8-0 libzstd1 zlib1g \
     && rm -rf /var/lib/apt/lists/*
 
 # repo(1) launcher - upstream's recommended install, stays current

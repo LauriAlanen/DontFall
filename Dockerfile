@@ -21,8 +21,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         python3 python3-distutils python3-git python3-jinja2 python3-pexpect \
         python3-subunit python-is-python3 \
         bc bison flex libssl-dev libncurses-dev libyaml-dev \
-        parted dosfstools mtools rsync \
-        ca-certificates curl sudo xterm \
+        parted dosfstools mtools rsync bzip2 \
+        ca-certificates curl sudo xterm openssh-client \
         libglib2.0-0 libpcre2-8-0 libzstd1 zlib1g \
     && rm -rf /var/lib/apt/lists/*
 

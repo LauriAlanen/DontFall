@@ -6,10 +6,11 @@ wires EXTERNALSRC up in local.conf automatically."
 LICENSE = "CLOSED"
 
 # Release build inputs - fill in the real repo URL and a pinned revision.
-# An unset/zero SRCREV makes release builds fail loudly rather than silently
-# shipping the wrong code.
+# Keep SRCREV at 40 zeros (or a real sha): the git fetcher resolves any
+# other value via ls-remote even under externalsrc, so a non-sha like "r0"
+# breaks parsing of every recipe, not just this one.
 SRC_URI = "git://github.com/YOURORG/dontfall-app.git;protocol=https;branch=main"
-SRCREV = "r0"
+SRCREV = "0000000000000000000000000000000000000000"
 
 S = "${WORKDIR}/git"
 

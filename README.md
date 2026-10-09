@@ -44,6 +44,33 @@ bitbake df-image-minimal      # our minimal image (or st-image-weston)
 `TEMPLATECONF`; pass a different build dir as first argument or via
 `BUILDDIR`.
 
+## Deploying to a running board
+
+`deploy.sh` pushes build output to a live board over SSH - no reflashing.
+The board must run an image containing `rsync`/`openssh-sftp-server`
+(df-image-minimal does) and be reachable on the LAN.
+
+```sh
+# clone the app repo into the workspace once; deploy.sh wires EXTERNALSRC
+# into conf/local.conf so bitbake builds your checkout directly
+git clone <app-repo> dontfall-app
+
+./deploy.sh <board-ip>                       # build + push dontfall-app
+./deploy.sh <board-ip> --run '/usr/local/bin/dontfall'
+./deploy.sh <board-ip> <other-recipe>        # any recipe's installed files
+./deploy.sh <board-ip> virtual/kernel --reboot   # kernel + dtbs + modules
+./deploy.sh <board-ip> --image               # build image, unpack rootfs
+                                             # on the running system
+```
+
+App files install under `/usr/local` (the dedicated userfs partition in the
+wks layout), kernel/devicetree under `/boot` (bootfs partition) - `deploy.sh`
+mounts both if they aren't already. Syncs are additive and never touch the
+signed boot partitions (TF-A/FIP), so the secure-boot chain stays intact.
+
+`devtool` also works over this connection, e.g.
+`./build.sh devtool deploy-target <recipe> root@<board-ip>`.
+
 ## Custom layers
 
 `meta-df/` holds the project layers — see `meta-df/README.md`.

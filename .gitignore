@@ -10,6 +10,7 @@
 !/docker-compose.yml
 !/docker-entrypoint.sh
 !/build.sh
+!/deploy.sh
 !/README.md
 !/AGENTS.md
 !/LICENSE*

@@ -31,6 +31,12 @@ SIGN_KEY_PUB_stm32mp15 = "${TOPDIR}/../stm32mp15x-keys/publicKey00.pem"
 # this file.
 SIGN_KEY_PASS = "${@open('${TOPDIR}/../stm32mp15x-keys/passphrase.txt').read().strip()}"
 
+# Application development: clone the app repo into the workspace
+# (<workspace>/dontfall-app) and uncomment to build it from your checkout
+# (./deploy.sh adds these lines automatically when it finds the checkout).
+#EXTERNALSRC:pn-dontfall-app = "${TOPDIR}/../dontfall-app"
+#EXTERNALSRC_BUILD:pn-dontfall-app = "${TOPDIR}/../dontfall-app-build"
+
 # Share downloads and sstate between build directories
 # (and between host and container builds - the container bind-mounts the
 # workspace at the same absolute path)

@@ -16,4 +16,12 @@ fi
 args=(run --rm)
 [ -t 0 ] || args+=(-T)
 
+# Sibling repos (A7 app checkout for externalsrc, M4 west workspace) are
+# mounted at their host paths when present. Done here rather than in
+# docker-compose.yml so a missing dir isn't created as root on the host.
+parent="$(cd .. && pwd)"
+for d in "$parent/DontFall-app" "$parent/DontFall-M4-ws"; do
+    [ -d "$d" ] && args+=(-v "$d:$d")
+done
+
 docker compose "${args[@]}" yocto "$@"

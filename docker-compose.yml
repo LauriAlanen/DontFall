@@ -10,6 +10,10 @@
 #
 #   WORKSPACE_ROOT=/path/to/DontFall docker compose run --rm yocto
 #
+# build.sh additionally mounts the sibling repos ../DontFall-app and
+# ../DontFall-M4-ws (same absolute paths) when they exist; they are not
+# listed here because compose would create missing host dirs as root.
+#
 # The image itself is built by ./init.sh (or: docker compose build).
 services:
   yocto:

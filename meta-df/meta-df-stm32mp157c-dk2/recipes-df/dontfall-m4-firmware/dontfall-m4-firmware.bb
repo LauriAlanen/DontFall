@@ -14,7 +14,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 # Build the firmware in the zephyr-m4 multiconfig first. The mcdepends edge
 # also carries its task hash, so a firmware change re-runs this install.
-do_install[mcdepends] = "mc::zephyr-m4:dontfall-m4:do_deploy"
+do_install[mcdepends] = "mc::${DF_M4_MC}:dontfall-m4:do_deploy"
 
 DF_M4_ELF = "${DF_M4_TMPDIR}/deploy/images/${DF_M4_MACHINE}/dontfall-m4-${DF_M4_MACHINE}.elf"
 

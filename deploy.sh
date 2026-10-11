@@ -11,7 +11,8 @@
 # Options:
 #   --image[=name]   deploy an image rootfs instead of recipe(s)
 #   --run '<cmd>'    run a command on the target after syncing
-#                    (e.g. 'systemctl restart dontfall' or '/usr/local/bin/dontfall')
+#                    (e.g. 'systemctl restart dontfall-m4' or
+#                    '/usr/local/bin/dontfall-app')
 #   --reboot         reboot the target after syncing
 #   --no-build       skip the bitbake step, deploy whatever is already built
 #

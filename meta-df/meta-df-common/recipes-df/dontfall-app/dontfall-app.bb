@@ -8,7 +8,7 @@ LICENSE = "CLOSED"
 # Release build input: bump SRCREV to a pushed commit of DontFall-app.
 # Private repo: fetched over ssh with the host ssh-agent (see build.sh).
 SRC_URI = "git://git@github.com/LauriAlanen/DontFall-app.git;protocol=ssh;branch=main"
-SRCREV = "6f53311213a99beb58b6bd98aebc3799921cae89"
+SRCREV = "04a412df741dc0519f5e2f010193ba262012cb9f"
 
 S = "${WORKDIR}/git"
 

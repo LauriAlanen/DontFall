@@ -122,8 +122,12 @@ ssh root@<board-ip> /usr/local/bin/dontfall-app
    ./build.sh
    mv /tmp/dev.conf build-stm32mp157c-dk2/conf/dev.conf
    ```
+   Restore `dev.conf` right after the build - if you forget, later "dev"
+   builds silently run as release builds.
 4. Flash the wic image, or update a running board:
-   `./deploy.sh <board-ip> --image --no-build --reboot`.
+   `./deploy.sh <board-ip> --image --no-build --reboot`. The image deploy is
+   additive: files removed from the image stay on the board until you
+   reflash (that's how the ST example firmware lingered).
 5. Commit the SRCREV bump in `DontFall`.
 
 The M4 firmware is always built from its pinned revision by bitbake (in the
@@ -135,11 +139,15 @@ modules and patches as `west` uses - so what you tested with
 
 The Zephyr commit is pinned twice and both must match:
 
-- `DontFall/default.xml` -> meta-zephyr revision (its `zephyr-kernel-src-3.7.0.inc`)
+- `DontFall/default.xml` -> meta-zephyr revision (its `zephyr-kernel-src-<ver>.inc`)
 - `DontFall-M4/west.yml` -> zephyr `revision`
+- `zephyr-m4.conf` -> `PREFERRED_VERSION_zephyr-kernel` (must match the inc)
 
-Bump both together, `repo sync meta-zephyr`, re-run
-`DontFall-M4/scripts/init.sh`, and check:
+Bump all three together, `repo sync meta-zephyr`, then re-run
+`DontFall-M4/scripts/init.sh`. If `west update` fails because our Zephyr
+patches left the checkout dirty, reset it first
+(`git -C ../zephyr checkout -- .`) - `init.sh` re-applies the patches.
+Then check:
 
 ```sh
 ~/Projects/DontFall-M4-ws/DontFall-M4/scripts/check-zephyr-pin.sh
@@ -157,4 +165,5 @@ they still apply after an upgrade.
 | M4 `running` but empty `trace0` and no channel | Zephyr stuck before `main()` - make sure `patches/zephyr` were applied (`git -C ~/Projects/DontFall-M4-ws/zephyr status`) |
 | Replies echo back endlessly with `cat`/`echo` | tty echo is on: `stty -F /dev/ttyRPMSG0 raw -echo` (the app does this itself) |
 | bitbake fetch of DontFall-app/-M4 fails with `Permission denied (publickey)` | ssh-agent not running/unlocked on the host: `eval "$(ssh-agent -s)" && ssh-add` |
+| bitbake fetch fails with `Host key verification failed` | github.com missing from `~/.ssh/known_hosts` (mounted into the container): `ssh-keyscan github.com >> ~/.ssh/known_hosts` |
 | `/usr/local/bin/dontfall-app: not found` after boot | `/usr/local` (userfs) not mounted: `systemctl status mount-partitions` |

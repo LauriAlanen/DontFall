@@ -18,6 +18,7 @@ BBLAYERS ?= " \
     ${WSROOT}/meta-openembedded/meta-webserver \
     ${WSROOT}/meta-st-stm32mp \
     ${WSROOT}/meta-st-openstlinux \
+    ${WSROOT}/meta-zephyr/meta-zephyr-core \
     ${WSROOT}/meta-df/meta-df-common \
     ${WSROOT}/meta-df/meta-df-stm32mp157c-dk2 \
     "

@@ -24,4 +24,15 @@ for d in "$parent/DontFall-app" "$parent/DontFall-M4-ws"; do
     [ -d "$d" ] && args+=(-v "$d:$d")
 done
 
+# The DontFall-app/DontFall-M4 recipes fetch private repos over ssh: hand
+# the host's ssh-agent and GitHub host keys to the container (bitbake passes
+# SSH_AUTH_SOCK through to its git fetcher). Unlock the key on the host
+# first: eval "$(ssh-agent -s)" && ssh-add
+if [ -S "${SSH_AUTH_SOCK:-}" ]; then
+    args+=(-v "$SSH_AUTH_SOCK:/run/ssh-agent.sock" -e SSH_AUTH_SOCK=/run/ssh-agent.sock)
+fi
+if [ -f "$HOME/.ssh/known_hosts" ]; then
+    args+=(-v "$HOME/.ssh/known_hosts:/home/yocto/.ssh/known_hosts:ro")
+fi
+
 docker compose "${args[@]}" yocto "$@"

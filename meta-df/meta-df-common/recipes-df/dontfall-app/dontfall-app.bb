@@ -6,7 +6,8 @@ and ./deploy.sh build your working tree."
 LICENSE = "CLOSED"
 
 # Release build input: bump SRCREV to a pushed commit of DontFall-app.
-SRC_URI = "git://github.com/LauriAlanen/DontFall-app.git;protocol=https;branch=main"
+# Private repo: fetched over ssh with the host ssh-agent (see build.sh).
+SRC_URI = "git://git@github.com/LauriAlanen/DontFall-app.git;protocol=ssh;branch=main"
 SRCREV = "cd832bc16217fe084fb6cbba3ab8b342f044d65a"
 
 S = "${WORKDIR}/git"

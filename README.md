@@ -3,6 +3,12 @@
 Yocto/OpenSTLinux (scarthgap) workspace for the STM32MP157C-DK2,
 managed with the `repo` tool (`default.xml`).
 
+The image ships the A7 application ([DontFall-app](https://github.com/LauriAlanen/DontFall-app))
+and the Zephyr Cortex-M4 firmware ([DontFall-M4](https://github.com/LauriAlanen/DontFall-M4)),
+which talk over OpenAMP (`/dev/ttyRPMSG0`).
+
+**Daily development and release flow: [docs/development.md](docs/development.md).**
+
 ## Setup
 
 ```sh
@@ -43,6 +49,27 @@ bitbake df-image-minimal      # our minimal image (or st-image-weston)
 `envsetup.sh` wraps `oe-init-build-env` with the project's
 `TEMPLATECONF`; pass a different build dir as first argument or via
 `BUILDDIR`.
+
+## Dev vs. release builds
+
+Developer overrides live in `conf/dev.conf` (copy once from
+`meta-df/meta-df-common/conf/templates/default/dev.conf.sample`); with it,
+`dontfall-app` is built from the sibling checkout `../DontFall-app`. A build
+dir **without** `conf/dev.conf` is a release build: every DontFall recipe
+fetches its pinned SRCREV.
+
+The DontFall-app/DontFall-M4 repos are private and fetched over ssh:
+`build.sh` hands your host ssh-agent and `~/.ssh/known_hosts` to the
+container, so unlock your key first (`eval "$(ssh-agent -s)" && ssh-add`).
+
+## M4 firmware (Zephyr)
+
+`BBMULTICONFIG = "zephyr-m4"` adds a second configuration that builds the
+`dontfall-m4` Zephyr app (meta-zephyr, Zephyr 3.7, Zephyr SDK 0.16.9) for the
+`stm32mp157c-dk2-m4` machine in `build-stm32mp157c-dk2/tmp-zephyr-m4`.
+`bitbake df-image-minimal` pulls it in through `dontfall-m4-firmware`, which
+installs `/lib/firmware/dontfall-m4.elf` and `dontfall-m4.service` (starts the
+M4 at boot). Build it alone with `./build.sh bitbake mc:zephyr-m4:dontfall-m4`.
 
 ## Deploying to a running board
 

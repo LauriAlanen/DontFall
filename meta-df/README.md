@@ -14,6 +14,22 @@ split by scope:
 (`conf/templates/default`) used by `oe-init-build-env`, and the
 `df-image-minimal` image recipe.
 
+## DontFall recipes and config
+
+| Item | Layer | What it does |
+|------|-------|--------------|
+| `dontfall-app` | common | A7 app from `DontFall-app` (pinned `SRCREV`; `conf/dev.conf` switches it to the `../DontFall-app` checkout via externalsrc) |
+| `dontfall-m4` | common | Zephyr M4 firmware from `DontFall-M4` (pinned `SRCREV_dfm4`, applies its `patches/zephyr/`); built only in the `zephyr-m4` multiconfig |
+| `conf/multiconfig/zephyr-m4.conf` | common | Second configuration: `DISTRO = "zephyr"`, Zephyr 3.7, Zephyr SDK toolchain, own TMPDIR |
+| `DF_M4_MC`, `DF_M4_MACHINE`, `DF_M4_TMPDIR` | common (`layer.conf`) | Names/paths shared by the multiconfig and the A7-side firmware package |
+| `stm32mp157c-dk2-m4` machine | stm32mp157c-dk2 | Cortex-M4 machine for the multiconfig (`ZEPHYR_BOARD = "stm32mp157c_dk2"`) |
+| `dontfall-m4-firmware` | stm32mp157c-dk2 | Installs the multiconfig's ELF as `/lib/firmware/dontfall-m4.elf` + `dontfall-m4.service` (starts the M4 at boot); pulled into images via `M4COPRO_LIST` in the machine conf |
+
+Only `meta-zephyr/meta-zephyr-core` is enabled - `meta-zephyr-bsp` defines
+its own `stm32mp157c-dk2` machine, which would clash with ours.
+
+Workflow: [../docs/development.md](../docs/development.md).
+
 ## Usage
 
 From the workspace root:

@@ -1,0 +1,13 @@
+#!/bin/sh
+# (Re)start the Cortex-M4 with /lib/firmware/dontfall-m4.elf via remoteproc.
+R=/sys/class/remoteproc/remoteproc0
+
+[ "$(cat $R/state)" = offline ] || echo stop > $R/state
+echo -n dontfall-m4.elf > $R/firmware
+echo start > $R/state
+
+state=$(cat $R/state)
+if [ "$state" != running ]; then
+    echo "dontfall-m4: remoteproc0 is '$state' after start" >&2
+    exit 1
+fi

@@ -12,3 +12,6 @@ IMAGE_FEATURES += "ssh-server-dropbear"
 # devtool deploy-target: rsync receives file trees, openssh-sftp-server +
 # openssh-scp let dropbear accept sftp/scp (devtool deploys via scp).
 IMAGE_INSTALL += "rsync openssh-sftp-server openssh-scp"
+
+# The DontFall A7 application (/usr/local/bin/dontfall-app)
+IMAGE_INSTALL += "dontfall-app"

@@ -1,0 +1,11 @@
+[Unit]
+Description=DontFall Cortex-M4 firmware (remoteproc0)
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/dontfall-m4-start
+ExecStop=/bin/sh -c 'echo stop > /sys/class/remoteproc/remoteproc0/state'
+
+[Install]
+WantedBy=multi-user.target

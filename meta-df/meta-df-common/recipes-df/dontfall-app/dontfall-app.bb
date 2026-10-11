@@ -8,13 +8,16 @@ LICENSE = "CLOSED"
 # Release build input: bump SRCREV to a pushed commit of DontFall-app.
 # Private repo: fetched over ssh with the host ssh-agent (see build.sh).
 SRC_URI = "git://git@github.com/LauriAlanen/DontFall-app.git;protocol=ssh;branch=main"
-SRCREV = "cd832bc16217fe084fb6cbba3ab8b342f044d65a"
+SRCREV = "6f53311213a99beb58b6bd98aebc3799921cae89"
 
 S = "${WORKDIR}/git"
 
 # externalsrc is a no-op until EXTERNALSRC:pn-dontfall-app is set (by
 # conf/dev.conf), so the same recipe serves dev checkouts and release builds.
 inherit externalsrc cmake
+
+# Host-side tests (ctest + python pty) don't belong in the target build.
+EXTRA_OECMAKE += "-DBUILD_TESTING=OFF"
 
 # Install under /usr/local: app files land on the dedicated userfs partition
 # (see meta-df-stm32mp157c-dk2/wic) and never touch the platform rootfs.

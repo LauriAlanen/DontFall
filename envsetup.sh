@@ -52,3 +52,8 @@ echo "==> Build dir:    $BUILDDIR"
 echo "==> TEMPLATECONF: $TEMPLATECONF"
 
 . "$DF_ROOT/openembedded-core/oe-init-build-env" "$BUILDDIR"
+
+if [ ! -f "$BUILDDIR/conf/dev.conf" ]; then
+    echo "==> No conf/dev.conf (release build). For development:" \
+         "cp $TEMPLATECONF/dev.conf.sample $BUILDDIR/conf/dev.conf" >&2
+fi

@@ -11,3 +11,7 @@ Useful commands:
   bitbake-layers show-layers  # list enabled layers
   bitbake -e <recipe>         # inspect recipe environment
   devtool modify <recipe>     # patch a recipe's sources
+
+Dev overrides (sibling checkouts via externalsrc) live in conf/dev.conf,
+copied once from $TEMPLATECONF/dev.conf.sample.
+A build dir without conf/dev.conf is a release build.

@@ -1,0 +1,15 @@
+#
+# DontFall developer overrides - copy to <builddir>/conf/dev.conf once:
+#
+#   cp meta-df/meta-df-common/conf/templates/default/dev.conf.sample \
+#      build-stm32mp157c-dk2/conf/dev.conf
+#
+# local.conf includes this file if it exists. A release build is simply a
+# build directory WITHOUT conf/dev.conf: every recipe then fetches its
+# pinned SRCREV instead of a local working tree.
+#
+
+# Build the A7 app from the sibling checkout (~/Projects/DontFall-app)
+# instead of the pinned git revision. ./deploy.sh <board-ip> then pushes
+# your working tree to the board.
+EXTERNALSRC:pn-dontfall-app = "${TOPDIR}/../../DontFall-app"

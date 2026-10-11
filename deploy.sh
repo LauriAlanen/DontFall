@@ -16,8 +16,9 @@
 #   --no-build       skip the bitbake step, deploy whatever is already built
 #
 # Notes:
-#  - Any recipe whose source is checked out as <workspace>/<recipe> is built
-#    from that checkout (EXTERNALSRC is wired into local.conf automatically).
+#  - With conf/dev.conf in the build dir, dontfall-app is built from the
+#    sibling checkout ../DontFall-app (externalsrc); without it, from the
+#    recipe's pinned SRCREV.
 #  - File syncs are additive: files deleted from a build stay on the board.
 #  - The board must run an image with rsync + openssh-sftp-server
 #    (df-image-minimal carries them since this script was introduced).
@@ -33,7 +34,7 @@ SSH_OPTS=(-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
 die()  { echo "deploy.sh: $*" >&2; exit 1; }
 info() { echo "==> $*"; }
 
-usage() { sed -n '2,23p' "$0" >&2; exit "${1:-0}"; }
+usage() { sed -n '2,24p' "$0" >&2; exit "${1:-0}"; }
 
 # --- argument parsing ------------------------------------------------------
 TARGET=""; RECIPES=(); IMAGE=""; RUN=""; REBOOT=0; NOBUILD=0
@@ -69,22 +70,6 @@ getvar() { # <recipe> <var>
     dcni bitbake -e "$1" 2>/dev/null | sed -n 's/^'"$2"'="\(.*\)"$/\1/p' | tail -n1
 }
 
-# If the workspace contains a source checkout named after a recipe, wire it
-# into local.conf via externalsrc so bitbake builds the local tree.
-wire_externalsrc() { # <recipe>
-    local r=$1 conf=$BUILDDIR/conf/local.conf
-    [ -d "$PWD/$r" ] || return 0
-    [ -f "$conf" ] || return 0
-    grep -q "^EXTERNALSRC:pn-$r" "$conf" && return 0
-    info "wiring EXTERNALSRC for $r -> $PWD/$r (in $conf)"
-    cat >>"$conf" <<EOF
-
-# added by deploy.sh: build $r from the workspace checkout
-EXTERNALSRC:pn-$r = "\${TOPDIR}/../$r"
-EXTERNALSRC_BUILD:pn-$r = "\${TOPDIR}/../$r-build"
-EOF
-}
-
 # Make sure the separate bootfs/userfs partitions are mounted on the target
 # so files routed to /boot and /usr/local land in the right partition
 # (the wic image is built with --no-fstab-update).
@@ -100,7 +85,6 @@ if [ $NOBUILD -eq 0 ]; then
         info "bitbake $IMAGE"
         dc bitbake "$IMAGE"
     else
-        for r in "${RECIPES[@]}"; do wire_externalsrc "$r"; done
         info "bitbake ${RECIPES[*]}"
         dc bitbake "${RECIPES[@]}"
     fi

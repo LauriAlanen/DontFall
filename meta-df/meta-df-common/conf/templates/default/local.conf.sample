@@ -31,11 +31,10 @@ SIGN_KEY_PUB_stm32mp15 = "${TOPDIR}/../stm32mp15x-keys/publicKey00.pem"
 # this file.
 SIGN_KEY_PASS = "${@open('${TOPDIR}/../stm32mp15x-keys/passphrase.txt').read().strip()}"
 
-# Application development: clone the app repo into the workspace
-# (<workspace>/dontfall-app) and uncomment to build it from your checkout
-# (./deploy.sh adds these lines automatically when it finds the checkout).
-#EXTERNALSRC:pn-dontfall-app = "${TOPDIR}/../dontfall-app"
-#EXTERNALSRC_BUILD:pn-dontfall-app = "${TOPDIR}/../dontfall-app-build"
+# Developer overrides (build sibling checkouts instead of pinned revisions)
+# live in conf/dev.conf - see meta-df-common/conf/templates/default/
+# dev.conf.sample. Optional: a build dir without it is a release build.
+include conf/dev.conf
 
 # WiFi auto-connect: the board joins this network on boot (wpa-supplicant
 # bbappend in meta-df-common; the passphrase lands in the image as a hashed

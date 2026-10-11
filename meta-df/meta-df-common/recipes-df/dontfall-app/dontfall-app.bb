@@ -1,22 +1,18 @@
 SUMMARY = "DontFall application"
-DESCRIPTION = "DontFall C/C++ application. Release builds fetch from git; \
-during development it builds straight out of a local checkout: clone the \
-app repo into the workspace (<workspace>/dontfall-app) and ./deploy.sh \
-wires EXTERNALSRC up in local.conf automatically."
+DESCRIPTION = "DontFall C/C++ application for the A7. Release builds fetch \
+the pinned SRCREV from git; during development conf/dev.conf points \
+EXTERNALSRC at the sibling checkout (~/Projects/DontFall-app) so bitbake \
+and ./deploy.sh build your working tree."
 LICENSE = "CLOSED"
 
-# Release build inputs - fill in the real repo URL and a pinned revision.
-# Keep SRCREV at 40 zeros (or a real sha): the git fetcher resolves any
-# other value via ls-remote even under externalsrc, so a non-sha like "r0"
-# breaks parsing of every recipe, not just this one.
-SRC_URI = "git://github.com/YOURORG/dontfall-app.git;protocol=https;branch=main"
-SRCREV = "0000000000000000000000000000000000000000"
+# Release build input: bump SRCREV to a pushed commit of DontFall-app.
+SRC_URI = "git://github.com/LauriAlanen/DontFall-app.git;protocol=https;branch=main"
+SRCREV = "cd832bc16217fe084fb6cbba3ab8b342f044d65a"
 
 S = "${WORKDIR}/git"
 
-# externalsrc is a no-op until EXTERNALSRC:pn-dontfall-app is set, so the
-# same recipe serves dev checkouts and release builds. If the app does not
-# use cmake, swap the class (autotools, meson) or write do_compile yourself.
+# externalsrc is a no-op until EXTERNALSRC:pn-dontfall-app is set (by
+# conf/dev.conf), so the same recipe serves dev checkouts and release builds.
 inherit externalsrc cmake
 
 # Install under /usr/local: app files land on the dedicated userfs partition

@@ -36,6 +36,11 @@ SIGN_KEY_PASS = "${@open('${TOPDIR}/../stm32mp15x-keys/passphrase.txt').read().s
 # dev.conf.sample. Optional: a build dir without it is a release build.
 include conf/dev.conf
 
+# Cortex-M4 Zephyr firmware is built in a second configuration
+# (meta-df-common/conf/multiconfig/zephyr-m4.conf); bitbake df-image-minimal
+# pulls it in automatically.
+BBMULTICONFIG = "zephyr-m4"
+
 # WiFi auto-connect: the board joins this network on boot (wpa-supplicant
 # bbappend in meta-df-common; the passphrase lands in the image as a hashed
 # PSK, never plaintext). Leave unset to disable.

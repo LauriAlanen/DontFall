@@ -51,12 +51,8 @@ The board must run an image containing `rsync`/`openssh-sftp-server`
 (df-image-minimal does) and be reachable on the LAN.
 
 ```sh
-# clone the app repo into the workspace once; deploy.sh wires EXTERNALSRC
-# into conf/local.conf so bitbake builds your checkout directly
-git clone <app-repo> dontfall-app
-
 ./deploy.sh <board-ip>                       # build + push dontfall-app
-./deploy.sh <board-ip> --run '/usr/local/bin/dontfall'
+./deploy.sh <board-ip> --run /usr/local/bin/dontfall-app
 ./deploy.sh <board-ip> <other-recipe>        # any recipe's installed files
 ./deploy.sh <board-ip> virtual/kernel --reboot   # kernel + dtbs + modules
 ./deploy.sh <board-ip> --image               # build image, unpack rootfs

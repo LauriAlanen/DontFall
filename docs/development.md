@@ -74,7 +74,7 @@ The board boots with the M4 firmware running (`dontfall-m4.service`) and
 ```sh
 cd ~/Projects/DontFall-app
 # edit src/...
-cmake -B build && cmake --build build && ctest --test-dir build   # host tests
+cmake -B build && cmake --build build   # host build, catches compile errors
 
 cd ~/Projects/DontFall
 ./deploy.sh <board-ip> --run 'systemctl restart dontfall-app'

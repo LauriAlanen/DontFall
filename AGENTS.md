@@ -32,7 +32,7 @@ Workflow overview: `docs/development.md`. Sibling repos:
 - Parse check: `./build.sh bitbake -p </dev/null`
 - M4 firmware via Yocto: `./build.sh bitbake mc:zephyr-m4:dontfall-m4 </dev/null`
 - Full image: `./build.sh </dev/null` (= `bitbake df-image-minimal`)
-- App host tests: `cd ../DontFall-app && cmake -B build && cmake --build build && ctest --test-dir build`
+- App host build: `cd ../DontFall-app && cmake -B build && cmake --build build` (no tests yet)
 - M4 dev build: `../DontFall-M4-ws/DontFall-M4/scripts/build.sh </dev/null`
 - Zephyr pin check: `../DontFall-M4-ws/DontFall-M4/scripts/check-zephyr-pin.sh`
 - Board checks need the board IP from the human (`./deploy.sh <ip> ...`,

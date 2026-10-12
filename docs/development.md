@@ -77,7 +77,7 @@ cd ~/Projects/DontFall-app
 cmake -B build && cmake --build build && ctest --test-dir build   # host tests
 
 cd ~/Projects/DontFall
-./deploy.sh <board-ip> --run /usr/local/bin/dontfall-app
+./deploy.sh <board-ip> --run 'systemctl restart dontfall-app'
 ```
 
 With `conf/dev.conf` in place bitbake builds your working tree (externalsrc,
@@ -103,23 +103,25 @@ systemctl restart dontfall-m4                          # reload firmware
 
 ## End-to-end check
 
+`dontfall-app.service` (started at boot) sends a `PING <seq>` heartbeat to
+the M4 every 500 ms over `/dev/ttyRPMSG0`; the M4 answers `PONG <seq>`.
+Each side declares the link lost after 1.5 s of silence:
+
+| LED | Blinks while | Proves |
+|-----|--------------|--------|
+| Orange LD7 (M4, every 500 ms) | the M4 receives PINGs | remoteproc started the M4, rpmsg A7 -> M4 works, the app is alive |
+| Blue LD8 (A7, every 1000 ms) | the A7 receives PONGs | rpmsg M4 -> A7 works, the M4 firmware is responsive |
+
+Both blinking = both cores and the link work. Logs on each side:
+
 ```sh
-ssh root@<board-ip> /usr/local/bin/dontfall-app
-# dontfall-app 0.1.0 on Linux 6.6.129 (armv7l)
-# hello from M4: hello from A7
+journalctl -u dontfall-app         # "M4 link up" / "M4 link lost"
+cat /sys/kernel/debug/remoteproc/remoteproc0/trace0   # "heartbeat: A7 link up/lost"
 ```
 
-The app also runs at boot as `dontfall-app.service`, which does the same
-hello and then keeps blinking the blue LED LD8 (`/sys/class/leds/heartbeat`,
-taken over from the heartbeat trigger):
-
-```sh
-systemctl status dontfall-app      # active
-journalctl -u dontfall-app         # shows the M4 reply
-```
-
-Blinking: orange LD7 (M4) every 500 ms, blue LD8 (A7) every 1000 ms.
-`systemctl stop dontfall-app` gives the heartbeat trigger back to LD8.
+`systemctl stop dontfall-app` turns LD7 off within 1.5 s and gives LD8 back
+to the kernel heartbeat trigger. Restarting the M4 is fine: the app reopens
+`/dev/ttyRPMSG0` when it comes back.
 
 ## Release
 

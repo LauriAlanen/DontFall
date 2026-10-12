@@ -1,5 +1,5 @@
 [Unit]
-Description=DontFall A7 application (OpenAMP hello + LD8 blinky)
+Description=DontFall A7 application (A7 <-> M4 heartbeat, LD8 = link status)
 Wants=dev-ttyRPMSG0.device
 After=dontfall-m4.service dev-ttyRPMSG0.device
 RequiresMountsFor=/usr/local

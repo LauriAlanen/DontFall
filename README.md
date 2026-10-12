@@ -79,7 +79,7 @@ The board must run an image containing `rsync`/`openssh-sftp-server`
 
 ```sh
 ./deploy.sh <board-ip>                       # build + push dontfall-app
-./deploy.sh <board-ip> --run /usr/local/bin/dontfall-app
+./deploy.sh <board-ip> --run 'systemctl restart dontfall-app'
 ./deploy.sh <board-ip> <other-recipe>        # any recipe's installed files
 ./deploy.sh <board-ip> virtual/kernel --reboot   # kernel + dtbs + modules
 ./deploy.sh <board-ip> --image               # build image, unpack rootfs

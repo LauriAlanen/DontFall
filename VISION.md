@@ -45,8 +45,8 @@ Principles:
 - **The M4 is a ROS 2 node.** It shows up on the ROS 2 graph like any other
   node and the A7 talks to it with topics and services. The intended route
   is micro-ROS on Zephyr with an RPMsg transport and the micro-ROS Agent on
-  the A7. This replaces today's hello-world over `/dev/ttyRPMSG0` and is not
-  built yet.
+  the A7. This replaces today's PING/PONG line protocol over
+  `/dev/ttyRPMSG0` and is not built yet.
 - **Use standard ROS 2 message types where they fit** (`geometry_msgs/Twist`,
   `sensor_msgs/Imu`, `sensor_msgs/JointState`, diagnostics), so stock
   tooling (`ros2 topic`, rosbag, RViz) works without custom glue. Only
@@ -60,8 +60,8 @@ Principles:
 ## Where things stand
 
 - **Working:** STM32MP157C-DK2 running the Yocto image with signed boot,
-  Zephyr M4 firmware loaded by remoteproc, and an OpenAMP hello-world
-  between the A7 app and the M4.
+  Zephyr M4 firmware loaded by remoteproc, and an OpenAMP heartbeat
+  between the A7 app and the M4 (LD7/LD8 show the link status).
 - **On hand, not used yet:** USB camera, and the DK2's own 480x800 DSI
   display (MB1407), which is the robot's screen.
 - **Coming soon:** one SimpleFOC board and one BLDC motor, so the first

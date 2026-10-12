@@ -3,7 +3,7 @@ DESCRIPTION = "DontFall C/C++ application for the A7. Release builds fetch \
 the pinned SRCREV from git; during development conf/dev.conf points \
 EXTERNALSRC at the sibling checkout (~/Projects/DontFall-app) so bitbake \
 and ./deploy.sh build your working tree. The image starts it at boot via \
-dontfall-app.service, which runs it as an LED blinky on blue LD8."
+dontfall-app.service, which runs it as the A7 <-> M4 heartbeat with blue LD8 as link status."
 LICENSE = "CLOSED"
 
 # Release build input: bump SRCREV to a pushed commit of DontFall-app.

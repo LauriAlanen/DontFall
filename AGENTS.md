@@ -1,5 +1,8 @@
 # Project Rules
 
+Read `VISION.md` first: project goal, architecture principles, and how to
+pace work (small, digestible steps).
+
 ## Git commits
 
 - NEVER add AI/tool attribution to commits: no "Generated with Devin",

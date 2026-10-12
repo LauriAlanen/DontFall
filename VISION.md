@@ -62,11 +62,14 @@ Principles:
 - **Working:** STM32MP157C-DK2 running the Yocto image with signed boot,
   Zephyr M4 firmware loaded by remoteproc, and an OpenAMP hello-world
   between the A7 app and the M4.
-- **On hand, not used yet:** USB camera.
+- **On hand, not used yet:** USB camera, and the DK2's own 480x800 DSI
+  display (MB1407), which is the robot's screen.
 - **Coming soon:** one SimpleFOC board and one BLDC motor, so the first
   motor work is a single motor on the bench.
 - **Undecided:** the IMU, encoders/position sensors, the second motor, the
-  screen hardware, the mechanical build and the ROS 2 distribution.
+  mechanical build and the ROS 2 distribution.
+
+Board details and pin usage: `docs/hardware.md`.
 
 ## How to work on this project
 
@@ -88,4 +91,5 @@ deadline.
   don't break the principles above (for example, no hard real-time on the
   A7).
 - **Don't invent hardware.** If a task needs a pin, sensor, part or wiring
-  that isn't decided yet, ask rather than assume.
+  that isn't decided yet, ask rather than assume. Look up pins in ST's
+  GPIO mapping and record every assignment in `docs/hardware.md`.

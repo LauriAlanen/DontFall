@@ -9,6 +9,17 @@ pace work (small, digestible steps).
   no "Co-Authored-By" bot trailers, no similar footers. Write plain
   commit messages only.
 
+## Testing
+
+- Write tests only for critical parts (e.g. control logic, safety and
+  fail-safe behaviour, protocol/message handling). Small features don't
+  need tests.
+- Test code the developer asks for to try out or understand a feature is
+  temporary: keep it minimal (one small test or script), not a full
+  suite, and don't treat it as permanent.
+- If unsure whether something is a real feature (needs proper tests) or
+  just an experiment, ask before writing tests.
+
 ## Build & verify
 
 Workflow overview: `docs/development.md`. Sibling repos:

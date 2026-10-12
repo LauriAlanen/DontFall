@@ -126,7 +126,8 @@ or A7 (Linux).
 
 | Signal | SoC pin | Header pin | Peripheral / AF | Core | Notes |
 |--------|---------|------------|-----------------|------|-------|
-| _none assigned yet_ | | | | | |
+| LD7 orange user LED | PH7 | on-board | GPIO output | M4 | blinky, toggles every 500 ms (Zephyr `led0`) |
+| LD8 blue user LED | PD11 | on-board | GPIO via Linux LED class (`/sys/class/leds/heartbeat`) | A7 | blinky, toggles every 1000 ms; dontfall-app takes it over from the heartbeat trigger |
 
 ## Parts
 

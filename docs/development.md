@@ -109,6 +109,18 @@ ssh root@<board-ip> /usr/local/bin/dontfall-app
 # hello from M4: hello from A7
 ```
 
+The app also runs at boot as `dontfall-app.service`, which does the same
+hello and then keeps blinking the blue LED LD8 (`/sys/class/leds/heartbeat`,
+taken over from the heartbeat trigger):
+
+```sh
+systemctl status dontfall-app      # active
+journalctl -u dontfall-app         # shows the M4 reply
+```
+
+Blinking: orange LD7 (M4) every 500 ms, blue LD8 (A7) every 1000 ms.
+`systemctl stop dontfall-app` gives the heartbeat trigger back to LD8.
+
 ## Release
 
 1. Commit and push `DontFall-app` and/or `DontFall-M4`.

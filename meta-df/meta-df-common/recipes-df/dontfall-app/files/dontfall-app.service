@@ -1,0 +1,12 @@
+[Unit]
+Description=DontFall A7 application (OpenAMP hello + LD8 blinky)
+Wants=dev-ttyRPMSG0.device
+After=dontfall-m4.service dev-ttyRPMSG0.device
+RequiresMountsFor=/usr/local
+
+[Service]
+ExecStart=/usr/local/bin/dontfall-app --led /sys/class/leds/heartbeat
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

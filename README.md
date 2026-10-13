@@ -80,6 +80,15 @@ ROS 2 **Jazzy** comes from [meta-ros](https://github.com/ros/meta-ros)
 toolchain and every package aren't rebuilt for it. meta-ros has no
 micro-ROS Agent recipe; that is ours to write.
 
+`meta-df-common/classes/ros_ament_cmake.bbclass` overrides the meta-ros class
+of the same name (meta-df-common is first in `BBPATH`). It inherits
+`python3targetconfig` instead of `python3native`, otherwise the rosidl Python
+bindings build against the host's x86_64 Python headers and fail on our
+32-bit A7 with `LONG_BIT definition appears wrong for platform`
+([meta-ros#1205](https://github.com/ros/meta-ros/issues/1205)). When bumping
+meta-ros, re-copy the upstream class and re-apply that one line; drop the
+override once upstream fixes the issue.
+
 ## Deploying to a running board
 
 `deploy.sh` pushes build output to a live board over SSH - no reflashing.

@@ -38,6 +38,13 @@ is involved, so later failures are clearly on the micro-ROS side.
 standard ROS set (rclcpp, rclpy, the `ros2` CLI, launch, Fast DDS as
 default middleware); `demo-nodes-cpp` has `talker`/`listener`. Build and
 flash. First build is long.
+- Hit and fixed: rosidl Python bindings compiled against the host's x86_64
+  Python headers (`LONG_BIT definition appears wrong`, meta-ros#1205).
+  Fixed by overriding `ros_ament_cmake.bbclass` in meta-df-common (see
+  README, "ROS 2").
+- Hit and fixed: stale git `alternates` in old work dirs pointing at the
+  former `build-stm32mp157c-dk2/downloads/` (downloads moved to the
+  workspace root). If it recurs: `bitbake -c clean <recipe>`.
 
 **2b. On the board alone** (ssh, two sessions):
 `ros2 run demo_nodes_cpp talker` / `ros2 run demo_nodes_cpp listener`, then

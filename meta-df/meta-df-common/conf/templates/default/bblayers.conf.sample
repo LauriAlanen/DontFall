@@ -19,6 +19,9 @@ BBLAYERS ?= " \
     ${WSROOT}/meta-st-stm32mp \
     ${WSROOT}/meta-st-openstlinux \
     ${WSROOT}/meta-zephyr/meta-zephyr-core \
+    ${WSROOT}/meta-ros/meta-ros-common \
+    ${WSROOT}/meta-ros/meta-ros2 \
+    ${WSROOT}/meta-ros/meta-ros2-jazzy \
     ${WSROOT}/meta-df/meta-df-common \
     ${WSROOT}/meta-df/meta-df-stm32mp157c-dk2 \
     "

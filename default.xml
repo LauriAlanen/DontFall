@@ -15,5 +15,6 @@
   <project name="meta-st-stm32mp" path="meta-st-stm32mp" revision="49046b2a0ad4dc29117025c94838b9befff86f23"/>
   <project name="meta-st-stm32mp-addons" path="meta-st-stm32mp-addons" revision="ad667afe266eb1ca706bf92ea6d99cc9ec74d662"/>
   <project name="meta-zephyr" path="meta-zephyr" remote="yocto" revision="f10a17c4b551f92a93ab6e8114b87c2816ed6f36"/>
+  <project name="ros/meta-ros" path="meta-ros" remote="github" revision="731aa26c6fde2ff4a4991c7f9ac6005ac4a491b1"/>
   <project name="meta-st-scripts" path="scripts" revision="8826802b453ef2ead61b07c7bc5ab525a405df04"/>
 </manifest>

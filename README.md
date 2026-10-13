@@ -71,6 +71,15 @@ container, so unlock your key first (`eval "$(ssh-agent -s)" && ssh-add`).
 installs `/lib/firmware/dontfall-m4.elf` and `dontfall-m4.service` (starts the
 M4 at boot). Build it alone with `./build.sh bitbake mc:zephyr-m4:dontfall-m4`.
 
+## ROS 2
+
+ROS 2 **Jazzy** comes from [meta-ros](https://github.com/ros/meta-ros)
+(scarthgap branch, pinned in `default.xml`; layers `meta-ros-common`,
+`meta-ros2`, `meta-ros2-jazzy`). meta-ros enables Fortran in gcc globally;
+`local.conf` turns that off with `ROS_WORLD_SKIP_GROUPS += "fortran"` so the
+toolchain and every package aren't rebuilt for it. meta-ros has no
+micro-ROS Agent recipe; that is ours to write.
+
 ## Deploying to a running board
 
 `deploy.sh` pushes build output to a live board over SSH - no reflashing.

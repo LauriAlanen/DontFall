@@ -41,6 +41,11 @@ include conf/dev.conf
 # pulls it in automatically.
 BBMULTICONFIG = "zephyr-m4"
 
+# ROS 2 Jazzy comes from meta-ros (meta-ros2-jazzy in bblayers.conf).
+# meta-ros enables Fortran in gcc globally, which rebuilds the toolchain and
+# every package; only lapack-based maths packages need it, so keep it off.
+ROS_WORLD_SKIP_GROUPS += "fortran"
+
 # WiFi auto-connect: the board joins this network on boot (wpa-supplicant
 # bbappend in meta-df-common; the passphrase lands in the image as a hashed
 # PSK, never plaintext). Leave unset to disable.

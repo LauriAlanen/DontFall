@@ -66,8 +66,10 @@ Principles:
   display (MB1407), which is the robot's screen.
 - **Coming soon:** one SimpleFOC board and one BLDC motor, so the first
   motor work is a single motor on the bench.
-- **Undecided:** the IMU, encoders/position sensors, the second motor, the
-  mechanical build and the ROS 2 distribution.
+- **ROS 2 distribution:** Jazzy (LTS), from meta-ros on scarthgap. The
+  layers are in the build; nothing ROS is in the image yet.
+- **Undecided:** the IMU, encoders/position sensors, the second motor and
+  the mechanical build.
 
 Board details and pin usage: `docs/hardware.md`.
 

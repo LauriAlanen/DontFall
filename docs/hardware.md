@@ -136,6 +136,12 @@ or A7 (Linux).
 | STM32MP157C-DK2 | on hand |
 | MB1407 DSI display, 480x800 (comes with the DK2) | on hand, the robot's screen |
 | USB camera | on hand, not used yet |
-| SimpleFOC board | to order |
-| BLDC motor (x1 to start) | to order |
-| IMU, encoders, second motor | undecided |
+| Arduino Modulino Movement (ABX00101), ST LSM6DSOX 6-axis IMU; SPI + INT1/INT2 on the 1x10 header (solder pins), power from the 3.3V/GND I2C header pins, no I2C pull-ups fitted | ordered |
+| SimpleFOCMini v2.3 (DRV8316, 5-35 V, 3x low-side current sense), x2-3 | planned, after the IMU works |
+| iPower GM4108H-120T gimbal motor with AS5048A encoder (SPI, 14-bit), x1 | planned, after the IMU works |
+| Current-limited bench supply, 12-24 V | planned, after the IMU works |
+| Second motor | undecided |
+
+First bench target: a free-standing reaction wheel balancer (one motor
+with a flywheel on top, tilt from the IMU, no pivot encoder). Pins are
+not assigned yet.

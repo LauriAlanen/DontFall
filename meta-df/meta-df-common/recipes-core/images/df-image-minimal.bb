@@ -17,3 +17,6 @@ IMAGE_INSTALL += "rsync openssh-sftp-server openssh-scp"
 # userfs partition, which ST's mount-partitions service mounts at /usr/local
 # on boot (bootfs/vendorfs likewise) - the wic image has no fstab entries.
 IMAGE_INSTALL += "dontfall-app systemd-mount-partitions"
+
+# ROS core and demo nodes for C++
+IMAGE_INSTALL += "ros-core demo-nodes-cpp"

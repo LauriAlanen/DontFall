@@ -7,7 +7,7 @@ something you can see working. Update the status as steps land.
 | # | Step | Status |
 |---|------|--------|
 | 1 | Pick the ROS 2 distro, add meta-ros to the build | done (`8a1290f`) |
-| 2 | Plain ROS 2 on the A7: talker/listener on the board and from the PC | in progress (2a) |
+| 2 | Plain ROS 2 on the A7: talker/listener on the board and from the PC | in progress (2a+2b done) |
 | 3 | micro-ROS Agent on the A7 image (own recipe) | todo |
 | 4 | M4 hello world: micro-ROS publishes a counter over RPMsg (west build) | todo |
 | 5 | Build the M4 micro-ROS firmware in bitbake from pinned sources | todo |
@@ -46,9 +46,14 @@ flash. First build is long.
   former `build-stm32mp157c-dk2/downloads/` (downloads moved to the
   workspace root). If it recurs: `bitbake -c clean <recipe>`.
 
-**2b. On the board alone** (ssh, two sessions):
-`ros2 run demo_nodes_cpp talker` / `ros2 run demo_nodes_cpp listener`, then
-`ros2 topic list`, `ros2 node list`.
+**2b. On the board alone** (done):
+`ros2 run demo_nodes_cpp talker` / `ros2 run demo_nodes_cpp listener`,
+`ros2 topic list`, `ros2 node list` all verified on the board.
+- meta-ros installs under `/opt/ros/jazzy` (`ros_opt_prefix.bbclass`), not
+  `/usr`. `recipes-ros/ros-workspace/ros-workspace_%.bbappend` installs
+  `/etc/profile.d/ros.sh` so login shells source `/opt/ros/jazzy/setup.sh`
+  automatically.
+- Rootfs usage with `ros-core` + `demo-nodes-cpp`: ~293 MB of 1.6 GB (19%).
 
 **2c. From the PC:** `ros2 topic echo /chatter` on the PC while the board
 runs the talker.

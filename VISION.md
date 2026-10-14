@@ -60,14 +60,16 @@ Principles:
 ## Where things stand
 
 - **Working:** STM32MP157C-DK2 running the Yocto image with signed boot,
-  Zephyr M4 firmware loaded by remoteproc, and an OpenAMP heartbeat
-  between the A7 app and the M4 (LD7/LD8 show the link status).
+  Zephyr M4 firmware loaded by remoteproc, an OpenAMP heartbeat between
+  the A7 app and the M4 (LD7/LD8 show the link status), and ROS 2 Jazzy
+  (`ros-core` + `demo-nodes-cpp`) on the A7 talking over the LAN to the PC.
 - **On hand, not used yet:** USB camera, and the DK2's own 480x800 DSI
   display (MB1407), which is the robot's screen.
 - **Coming soon:** one SimpleFOC board and one BLDC motor, so the first
   motor work is a single motor on the bench.
-- **ROS 2 distribution:** Jazzy (LTS), from meta-ros on scarthgap. The
-  layers are in the build; nothing ROS is in the image yet.
+- **ROS 2 distribution:** Jazzy (LTS), from meta-ros on scarthgap.
+  `ros-core` is in the A7 image; micro-ROS (Agent on A7, client on M4) is
+  next.
 - **Undecided:** the IMU, encoders/position sensors, the second motor and
   the mechanical build.
 

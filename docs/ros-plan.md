@@ -7,7 +7,7 @@ something you can see working. Update the status as steps land.
 | # | Step | Status |
 |---|------|--------|
 | 1 | Pick the ROS 2 distro, add meta-ros to the build | done (`8a1290f`) |
-| 2 | Plain ROS 2 on the A7: talker/listener on the board and from the PC | in progress (2a+2b done) |
+| 2 | Plain ROS 2 on the A7: talker/listener on the board and from the PC | done |
 | 3 | micro-ROS Agent on the A7 image (own recipe) | todo |
 | 4 | M4 hello world: micro-ROS publishes a counter over RPMsg (west build) | todo |
 | 5 | Build the M4 micro-ROS firmware in bitbake from pinned sources | todo |
@@ -28,12 +28,12 @@ something you can see working. Update the status as steps land.
 - meta-ros bbappends some existing recipes (python3, bash, libffi, boost,
   ...), so the first build after adding it rebuilds more than expected.
 
-## Step 2: plain ROS 2 on the A7
+## Step 2: plain ROS 2 on the A7 (done)
 
 Goal: prove the image, the ROS install, DDS and the network before the M4
 is involved, so later failures are clearly on the micro-ROS side.
 
-**2a. Put ROS into the image.** In `df-image-minimal.bb`:
+**2a. Put ROS into the image (done).** In `df-image-minimal.bb`:
 `IMAGE_INSTALL += "ros-core demo-nodes-cpp"`. `ros-core` is the smallest
 standard ROS set (rclcpp, rclpy, the `ros2` CLI, launch, Fast DDS as
 default middleware); `demo-nodes-cpp` has `talker`/`listener`. Build and
@@ -55,24 +55,18 @@ flash. First build is long.
   automatically.
 - Rootfs usage with `ros-core` + `demo-nodes-cpp`: ~293 MB of 1.6 GB (19%).
 
-**2c. From the PC:** `ros2 topic echo /chatter` on the PC while the board
-runs the talker.
-- WSL2's default NAT networking blocks DDS multicast discovery. Fix with
-  mirrored networking (`networkingMode=mirrored` in `.wslconfig`), or Fast
-  DDS discovery server / static peers.
-- The PC needs Jazzy too: native on Ubuntu 24.04, or the `ros:jazzy`
-  Docker image.
-- Same `ROS_DOMAIN_ID` on both sides.
-
-To check during step 2:
-- Rootfs partition size: `ros-core` adds Python and many libraries (maybe a
-  few hundred MB); the partition may need to grow.
-- Whether `ros2` needs a setup script sourced on the board (meta-ros
-  installs into `/usr`).
-- `./deploy.sh <ip> --image` (additive) vs a clean reflash.
-
-Needs from the developer: board IP (2b); PC setup for 2c (WSL Ubuntu
-version, native Jazzy or Docker).
+**2c. From the PC** (done):
+- WSL2 is in mirrored networking mode (`networkingMode=mirrored`), putting
+  `eth0` directly on the LAN subnet. Windows enables the Hyper-V firewall
+  with `DefaultInboundAction = Block` by default, which drops inbound DDS
+  UDP packets from the board; allow it in an Admin PowerShell on Windows:
+  `Set-NetFirewallHyperVVMSetting -Name '{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}' -DefaultInboundAction Allow`
+- On the PC, use the `ros:jazzy-ros-core` Docker image with `--network host`
+  (pass `--no-daemon` for one-shot `docker run` commands so a spawned
+  `_ros2_daemon` doesn't hold the container open):
+  `docker run --rm --network host ros:jazzy-ros-core bash -c "source /opt/ros/jazzy/setup.bash && ros2 topic echo /chatter std_msgs/msg/String --no-daemon"`
+- Verified: `/talker` on the board is discovered on the PC and `/chatter`
+  messages arrive over the LAN.
 
 ## Step 3: micro-ROS Agent on the A7
 

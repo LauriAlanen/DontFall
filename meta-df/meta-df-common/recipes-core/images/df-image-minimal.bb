@@ -18,5 +18,5 @@ IMAGE_INSTALL += "rsync openssh-sftp-server openssh-scp"
 # on boot (bootfs/vendorfs likewise) - the wic image has no fstab entries.
 IMAGE_INSTALL += "dontfall-app systemd-mount-partitions"
 
-# ROS core and demo nodes for C++
-IMAGE_INSTALL += "ros-core demo-nodes-cpp"
+# ROS core, demo nodes, and micro-ROS Agent (bridges M4 over RPMsg to ROS 2)
+IMAGE_INSTALL += "ros-core demo-nodes-cpp micro-ros-agent"

@@ -8,7 +8,7 @@ something you can see working. Update the status as steps land.
 |---|------|--------|
 | 1 | Pick the ROS 2 distro, add meta-ros to the build | done (`8a1290f`) |
 | 2 | Plain ROS 2 on the A7: talker/listener on the board and from the PC | done |
-| 3 | micro-ROS Agent on the A7 image (own recipe) | todo |
+| 3 | micro-ROS Agent on the A7 image (own recipe) | done |
 | 4 | M4 hello world: micro-ROS publishes a counter over RPMsg (west build) | todo |
 | 5 | Build the M4 micro-ROS firmware in bitbake from pinned sources | todo |
 
@@ -68,13 +68,26 @@ flash. First build is long.
 - Verified: `/talker` on the board is discovered on the PC and `/chatter`
   messages arrive over the LAN.
 
-## Step 3: micro-ROS Agent on the A7
+## Step 3: micro-ROS Agent on the A7 (done)
 
-- Write a recipe for `micro-ros-agent` (Jazzy branch). Its CMake
-  "superbuild" downloads Micro-XRCE-DDS-Agent at build time, which bitbake
-  forbids: build with the superbuild off and provide
-  `microxrcedds-agent` as its own pinned recipe.
-- Run it as `micro-ros-agent serial --dev /dev/ttyRPMSG1`.
+- Two own recipes in `meta-df-common/recipes-ros/`:
+  - `microxrcedds-agent_2.4.3.bb`: the Micro XRCE-DDS Agent library at the
+    tag micro-ROS-Agent's `SuperBuild.cmake` pins (v2.4.3), superbuild off,
+    against meta-ros's Fast DDS/Fast CDR and meta-oe's spdlog.
+  - `micro-ros-agent_5.0.2.bb`: micro-ROS-Agent `jazzy` branch with
+    `MICROROSAGENT_SUPERBUILD=OFF`. Adds `/opt/ros/jazzy/bin/micro-ros-agent`
+    (symlink) so it runs without `ros2 run`.
+- Hit and fixed: the Agent was written for spdlog 1.9 / fmt 8; meta-oe has
+  fmt 10, which no longer formats types via `operator<<`. A patch adds
+  `fmt::ostream_formatter` specializations for the logged types (endpoints,
+  `TransportAddress`, Fast DDS GUID/entity/sample ids).
+- Hit and fixed: `micro-ros-msgs` (meta-ros) didn't cross-compile, CMake
+  picked the native 64-bit fastcdr config. A bbappend adds the target
+  rosidl/fastcdr build deps (same pattern as meta-ros's msgs bbappends).
+- Verified on the board: `micro-ros-agent udp4 --port 8888 -v4` starts
+  and logs. A real client comes with step 4; run it then as
+  `micro-ros-agent serial --dev /dev/ttyRPMSG1` (that endpoint doesn't
+  exist yet).
 
 ## Step 4: M4 micro-ROS hello world (west build)
 

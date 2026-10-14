@@ -9,7 +9,7 @@ something you can see working. Update the status as steps land.
 | 1 | Pick the ROS 2 distro, add meta-ros to the build | done (`8a1290f`) |
 | 2 | Plain ROS 2 on the A7: talker/listener on the board and from the PC | done |
 | 3 | micro-ROS Agent on the A7 image (own recipe) | done |
-| 4 | M4 hello world: micro-ROS publishes a counter over RPMsg (west build) | todo |
+| 4 | M4 hello world: micro-ROS publishes a counter over RPMsg (west build) | done |
 | 5 | Build the M4 micro-ROS firmware in bitbake from pinned sources | todo |
 
 ## Step 1 findings (done)
@@ -89,29 +89,52 @@ flash. First build is long.
   `micro-ros-agent serial --dev /dev/ttyRPMSG1` (that endpoint doesn't
   exist yet).
 
-## Step 4: M4 micro-ROS hello world (west build)
+## Step 4: M4 micro-ROS hello world (west build) (done)
 
-- Use the `micro_ros_zephyr_module` (Jazzy). Check it builds against our
-  pinned Zephyr 3.7.0; don't bump Zephyr for it unless forced (three pins
-  move together, see `docs/development.md`).
-- No ready-made RPMsg transport: write a micro-ROS **custom transport**
-  (framing on) on top of `app/src/ipc.c`, on a **second** `rpmsg-tty`
-  endpoint (Linux side `/dev/ttyRPMSG1`). The stock Agent needs no custom
-  code that way.
-- Keep the PING/PONG heartbeat on the first endpoint during bring-up as a
-  known-good reference. Replace it later with micro-ROS liveness
-  (`rmw_uros_ping_agent` / command timeout) for the fail-safe.
-- MTU: RPMsg buffers are 512 bytes incl. header (~496 payload); keep the
-  transport MTU below that.
-- Memory: `CONFIG_HEAP_MEM_POOL_SIZE=1024` and `MAIN_STACK_SIZE=1024` are far
-  too small; micro-ROS needs tens of KB. Tune stacks, heap and micro-ROS
-  static limits.
-- Done when: a `std_msgs/Int32` counter from the M4 shows up in
-  `ros2 topic echo` on the PC.
+Node `dontfall_m4` on the M4 publishes a `std_msgs/Int32` counter on
+`/dontfall_m4/counter` once a second; verified with `ros2 topic echo` on
+the PC. Code in DontFall-M4: `app/src/uros.c` (node),
+`app/src/uros_transport.c` (transport).
+
+- **Memory layout first.** The M4's "flash" was RETRAM (64 KB) and already
+  half full; micro-ROS needs ~60 KB more code. Code now runs from MCU SRAM1
+  (128 KB, `zephyr,flash`), data from SRAM2 (128 KB, `zephyr,sram`), and
+  only the vector table stays at address 0 in RETRAM
+  (`CONFIG_ROMSTART_RELOCATION_ROM`, made for remoteproc). Same split as
+  ST's Cube examples; the MPU maps code read-only and data execute-never.
+  With micro-ROS: code ~95 KB of 128 KB, static RAM ~45 KB, the rest of
+  SRAM2 is the malloc arena micro-ROS allocates from.
+  - Tried and rejected: `CONFIG_XIP=n` (everything in one RAM region). It
+    puts `.resource_table` after `_end`, where the libc malloc arena starts,
+    and the heap overwrites it: rpmsg setup fails and reading the table in
+    debugfs oopses the kernel.
+- `micro_ros_zephyr_module` (jazzy) pinned in DontFall-M4's `west.yml`. It
+  builds fine against our Zephyr 3.7.0 (upstream tests 4.x), so no Zephyr
+  bump. The container now has colcon, catkin_pkg, lark and empy (pinned).
+  A small patch (`patches/micro_ros_zephyr_module/`) adds a "custom"
+  transport choice, since the module only offers UART/USB/UDP.
+  `CONFIG_STATIC_INIT_GNU=y` is needed (libmicroros has constructors).
+- **Transport:** custom transport with framing on a **second** `rpmsg-tty`
+  endpoint (`/dev/ttyRPMSG1`), stock Agent in serial mode. Revised from the
+  original plan: with framing it is a byte stream, so the 496-byte rpmsg
+  payload does not limit the XRCE MTU (left at 512).
+- **The A7 must write first.** rpmsg learns Linux's endpoint address only
+  from a first message, and an XRCE-DDS client always speaks first, so
+  nothing moves until Linux writes once. Start the Agent with:
+  `printf '\n' > /dev/ttyRPMSG1; micro-ros-agent serial --dev /dev/ttyRPMSG1`
+  (bytes outside a frame are ignored). A future Agent service needs this
+  as an `ExecStartPre`.
+- The PING/PONG heartbeat on `/dev/ttyRPMSG0` still runs alongside.
+- Not done yet: reconnecting when the Agent restarts (restart the M4 for
+  now), and micro-ROS liveness (`rmw_uros_ping_agent`, command timeouts)
+  for the fail-safe.
 
 ## Step 5: M4 micro-ROS in bitbake
 
 The Zephyr module builds libmicroros by running colcon during CMake, which
-fetches sources from the network. bitbake blocks network access there and
-it breaks reproducibility. Pre-fetch pinned sources (or a separate library
+`git clone`s ~20 repos at their **branch heads** (`libmicroros.mk`), so
+even the west build is not pinned below the module itself. bitbake blocks
+network access there and it breaks reproducibility. The recipe also has to
+apply `patches/micro_ros_zephyr_module/` and add the module path that
+`app/CMakeLists.txt` assumes from the west layout. Pre-fetch pinned sources (or a separate library
 recipe) so `bitbake mc:zephyr-m4:dontfall-m4` builds offline.

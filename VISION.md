@@ -45,8 +45,9 @@ Principles:
 - **The M4 is a ROS 2 node.** It shows up on the ROS 2 graph like any other
   node and the A7 talks to it with topics and services. The intended route
   is micro-ROS on Zephyr with an RPMsg transport and the micro-ROS Agent on
-  the A7. This replaces today's PING/PONG line protocol over
-  `/dev/ttyRPMSG0` and is not built yet.
+  the A7. It will replace today's PING/PONG line protocol over
+  `/dev/ttyRPMSG0`; a first micro-ROS hello world runs alongside it on
+  `/dev/ttyRPMSG1`.
 - **Use standard ROS 2 message types where they fit** (`geometry_msgs/Twist`,
   `sensor_msgs/Imu`, `sensor_msgs/JointState`, diagnostics), so stock
   tooling (`ros2 topic`, rosbag, RViz) works without custom glue. Only
@@ -68,8 +69,9 @@ Principles:
 - **Coming soon:** one SimpleFOC board and one BLDC motor, so the first
   motor work is a single motor on the bench.
 - **ROS 2 distribution:** Jazzy (LTS), from meta-ros on scarthgap.
-  `ros-core` is in the A7 image; micro-ROS (Agent on A7, client on M4) is
-  next.
+  `ros-core` and the micro-ROS Agent are in the A7 image; the M4
+  publishes a test counter over micro-ROS (west build only so far, see
+  `docs/ros-plan.md`).
 - **Undecided:** the IMU, encoders/position sensors, the second motor and
   the mechanical build.
 

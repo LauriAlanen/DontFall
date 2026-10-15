@@ -17,6 +17,9 @@ only if it saves the next agent significant work.
 
 ## Yocto
 
+- **meta-ros recipes that fetch from git may lack `S`** (written for newer
+  bitbake). The error looks like a broken patch ("can't find file to
+  patch") because the source dir is empty; set `S = "${WORKDIR}/git"`.
 - **Never hand-write patches.** Edit the unpacked source under git and use
   `git format-patch`/`git diff`; hand-made patches failed to apply.
 

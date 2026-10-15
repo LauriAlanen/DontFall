@@ -10,7 +10,7 @@ something you can see working. Update the status as steps land.
 | 2 | Plain ROS 2 on the A7: talker/listener on the board and from the PC | done |
 | 3 | micro-ROS Agent on the A7 image (own recipe) | done |
 | 4 | M4 hello world: micro-ROS publishes a counter over RPMsg (west build) | done |
-| 5 | Build the M4 micro-ROS firmware in bitbake from pinned sources | 5a done, 5b/5c todo |
+| 5 | Build the M4 micro-ROS firmware in bitbake from pinned sources | 5a, 5b done, 5c todo |
 
 ## Step 1 findings (done)
 
@@ -159,12 +159,25 @@ The module still keeps its build output in its source tree
 `west build -p` does not remove it: delete it after bumping a pin.
 Verified: pristine build without any clone, counter on the board.
 
-**5b. bitbake (todo).** `dontfall-m4.bb` fetches the module and the 28
-repos at the same revisions and paths, applies the module patches, and
-depends on meta-ros's colcon/catkin-pkg/empy/lark `-native` recipes.
-meta-ros has lark-parser 0.7.0 (the container uses 1.1.9): check the
-rosidl generators accept it. Extend `check-zephyr-pin.sh` to compare the
-micro-ROS pins too.
+**5b. bitbake (done).** `dontfall-m4.bb` requires `micro-ros-srcs.inc`,
+which fetches the module and the 28 repos at the west revisions and paths;
+`do_patch` applies `patches/micro_ros_zephyr_module/` like the Zephyr ones.
+`check-zephyr-pin.sh` now also compares the micro-ROS pins (29 with the
+module). Verified: `bitbake mc:zephyr-m4:dontfall-m4` builds (same size as
+west), and that ELF publishes the counter on the board.
+- colcon as host tools: meta-ros only has `colcon-core` as `-native`.
+  `zephyr-m4.conf` turns on `native` for the extensions the build uses and
+  sets `S = "${WORKDIR}/git"` for the ones fetched from git (meta-ros
+  leaves `S` unset, which only works with newer bitbake; the symptom is
+  patches "not applying" to an empty source dir).
+- meta-ros's lark-parser 0.7.0 works for the rosidl generators.
+- meta-zephyr passes `-DZEPHYR_EXTRA_MODULES=` (empty by default) and
+  Zephyr prefers that cache value over the list `app/CMakeLists.txt`
+  appends to, so the recipe sets `ZEPHYR_EXTRA_MODULES` itself.
+- The host half of the build (ament tools) uses `$CC`, which OE sets to a
+  target compiler; `do_compile` exports `BUILD_CC`/`BUILD_CXX`.
+- `do_configure` deletes the module's in-tree build output first, otherwise
+  a failed build's half-finished `micro_ros_dev/install` is reused.
 
 **5c. Release (todo).** Bump `SRCREV_dfm4`, build the image, deploy and
 check the counter.

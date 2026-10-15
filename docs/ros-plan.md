@@ -10,7 +10,7 @@ something you can see working. Update the status as steps land.
 | 2 | Plain ROS 2 on the A7: talker/listener on the board and from the PC | done |
 | 3 | micro-ROS Agent on the A7 image (own recipe) | done |
 | 4 | M4 hello world: micro-ROS publishes a counter over RPMsg (west build) | done |
-| 5 | Build the M4 micro-ROS firmware in bitbake from pinned sources | todo |
+| 5 | Build the M4 micro-ROS firmware in bitbake from pinned sources | 5a done, 5b/5c todo |
 
 ## Step 1 findings (done)
 
@@ -146,3 +146,25 @@ network access there and it breaks reproducibility. The recipe also has to
 apply `patches/micro_ros_zephyr_module/` and add the module path that
 `app/CMakeLists.txt` assumes from the west layout. Pre-fetch pinned sources (or a separate library
 recipe) so `bitbake mc:zephyr-m4:dontfall-m4` builds offline.
+
+**5a. Pin the sources, west side (done).** DontFall-M4's `micro_ros.yml`
+(imported by `west.yml`) pins the 28 repos at the revisions verified in
+step 4, checked out to `modules/lib/micro_ros/{dev,src}`. Module patch
+`0002` makes `libmicroros.mk` build them with colcon `--base-paths`
+instead of cloning; the packages it used to skip with `COLCON_IGNORE`
+files are skipped with `--packages-ignore`, so the checkouts stay clean.
+`app/CMakeLists.txt` passes the location as `MICROROS_REPOS_DIR`.
+The module still keeps its build output in its source tree
+(`micro_ros_dev/`, `micro_ros_src/`, `include/`, `libmicroros.a`), and
+`west build -p` does not remove it: delete it after bumping a pin.
+Verified: pristine build without any clone, counter on the board.
+
+**5b. bitbake (todo).** `dontfall-m4.bb` fetches the module and the 28
+repos at the same revisions and paths, applies the module patches, and
+depends on meta-ros's colcon/catkin-pkg/empy/lark `-native` recipes.
+meta-ros has lark-parser 0.7.0 (the container uses 1.1.9): check the
+rosidl generators accept it. Extend `check-zephyr-pin.sh` to compare the
+micro-ROS pins too.
+
+**5c. Release (todo).** Bump `SRCREV_dfm4`, build the image, deploy and
+check the counter.

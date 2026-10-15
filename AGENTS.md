@@ -1,7 +1,8 @@
 # Project Rules
 
 Read `VISION.md` first: project goal, architecture principles, and how to
-pace work (small, digestible steps).
+pace work (small, digestible steps). Skim `docs/lessons-learned.md` before
+board, Yocto patch or M4 memory work.
 
 ## Git commits
 

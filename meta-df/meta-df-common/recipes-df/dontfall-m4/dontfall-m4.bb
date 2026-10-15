@@ -8,7 +8,7 @@ inherit zephyr-sample
 
 # Private repo: fetched over ssh with the host ssh-agent (see build.sh).
 SRC_URI += "git://git@github.com/LauriAlanen/DontFall-M4.git;protocol=ssh;branch=main;name=dfm4;destsuffix=git/dontfall-m4"
-SRCREV_dfm4 = "e0cb7172c559e2699735c9d420ab02f29e71b882"
+SRCREV_dfm4 = "1b92ccf6bb484e9890207729a606ec7a8bd9fb33"
 SRCREV_FORMAT:append = "_dfm4"
 
 ZEPHYR_SRC_DIR = "${S}/dontfall-m4/app"

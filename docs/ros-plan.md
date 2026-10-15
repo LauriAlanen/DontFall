@@ -10,7 +10,7 @@ something you can see working. Update the status as steps land.
 | 2 | Plain ROS 2 on the A7: talker/listener on the board and from the PC | done |
 | 3 | micro-ROS Agent on the A7 image (own recipe) | done |
 | 4 | M4 hello world: micro-ROS publishes a counter over RPMsg (west build) | done |
-| 5 | Build the M4 micro-ROS firmware in bitbake from pinned sources | 5a, 5b done, 5c todo |
+| 5 | Build the M4 micro-ROS firmware in bitbake from pinned sources | done |
 
 ## Step 1 findings (done)
 
@@ -179,5 +179,10 @@ west), and that ELF publishes the counter on the board.
 - `do_configure` deletes the module's in-tree build output first, otherwise
   a failed build's half-finished `micro_ros_dev/install` is reused.
 
-**5c. Release (todo).** Bump `SRCREV_dfm4`, build the image, deploy and
-check the counter.
+**5c. Release (done).** `SRCREV_dfm4` bumped, release image built and
+deployed; the counter arrives from the image's own firmware.
+- Found on the way: `dontfall-app.bb` still pinned a revision from before
+  `--led`/the heartbeat (dev.conf's externalsrc hid it), so a release image
+  shipped an app that failed against its own service file. Bumped too.
+- Still open for later: an Agent systemd unit (with the `printf` as
+  `ExecStartPre`), and micro-ROS liveness for the fail-safe.

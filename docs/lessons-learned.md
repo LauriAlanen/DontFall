@@ -8,7 +8,8 @@ only if it saves the next agent significant work.
 - **Non-login ssh has no ROS env.** `ssh root@<ip> 'ros2 ...'` fails; prefix
   the command with `. /etc/profile;` (it sources `/opt/ros/jazzy/setup.sh`).
 - **Board shell is BusyBox.** Short option forms only (`head -n 30`, not
-  `head -30`), no `devmem`. Read device tree / sysfs / debugfs instead.
+  `head -30`), no `devmem`, no `timeout` or `pkill` (background the
+  command, `sleep`, then `kill $!`). Read device tree / sysfs / debugfs instead.
 - **Host key changed after a reflash** is expected, not an attack:
   `ssh-keygen -R <ip>`, then reconnect.
 - Kill anything you started for a test (e.g. `micro_ros_agent`) before

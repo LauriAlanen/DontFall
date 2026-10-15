@@ -125,9 +125,17 @@ the PC. Code in DontFall-M4: `app/src/uros.c` (node),
   (bytes outside a frame are ignored). A future Agent service needs this
   as an `ExecStartPre`.
 - The PING/PONG heartbeat on `/dev/ttyRPMSG0` still runs alongside.
-- Not done yet: reconnecting when the Agent restarts (restart the M4 for
-  now), and micro-ROS liveness (`rmw_uros_ping_agent`, command timeouts)
-  for the fail-safe.
+- **Reconnect:** while connected the M4 pings the Agent once a second
+  (`rmw_uros_ping_agent`); on a missed ping it destroys everything (session
+  destroy timeout 0, the Agent is gone), flushes the rx pipe and goes back
+  to waiting for the Agent. A restarted Agent has forgotten the session, so
+  node/publisher are created again. Linux keeps the rpmsg endpoint across
+  Agent restarts, so only the first Agent start after each M4 boot needs
+  the `printf`.
+  Verified on the board: three Agent kill/restart cycles, counter resumes
+  each time without restarting the M4.
+- Not done yet: micro-ROS liveness for the fail-safe (command timeouts,
+  acting on "Agent lost").
 
 ## Step 5: M4 micro-ROS in bitbake
 

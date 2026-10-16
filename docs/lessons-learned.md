@@ -23,6 +23,11 @@ only if it saves the next agent significant work.
 - **Never hand-write patches.** Edit the unpacked source under git and use
   `git format-patch`/`git diff`; hand-made patches failed to apply.
 
+- **U-Boot extlinux `TIMEOUT 0` can hang the boot.** Any `MENU` line in
+  extlinux.conf (ST adds `MENU BACKGROUND` with the `splashscreen` machine
+  feature) turns on U-Boot's prompt, and timeout 0 then waits forever at
+  "Enter choice:". No `MENU` line = no prompt, boots the first label.
+
 ## M4 (Zephyr)
 
 - **Memory layout / resource table:** read `docs/ros-plan.md` step 4 before

@@ -13,7 +13,7 @@ ssh root@<ip> 'journalctl -b | grep "systemd\[1\]: Startup finished"; df -h /; f
 
 | # | Step | Status |
 |---|------|--------|
-| 1 | Drop packagegroup-base-extended, syslog, resize InitRD, ST example DTs, extlinux menu | built, needs a reflash to measure |
+| 1 | Drop packagegroup-base-extended, syslog, resize InitRD, ST example DTs, extlinux menu, `quiet` | done |
 | 2 | Install only the kernel modules the board uses | todo |
 | 3 | Trim the kernel config (debug, unused drivers) | todo |
 | 4 | Own distro config instead of `openstlinux-weston` (no wayland/x11/gstreamer/pulseaudio...) | todo, full rebuild |
@@ -53,4 +53,27 @@ ssh root@<ip> 'journalctl -b | grep "systemd\[1\]: Startup finished"; df -h /; f
   and FIP still rebuild once, because their task signature includes
   `MACHINE_FEATURES`: same sources, config and key, freshly signed.
 - Needs a full reflash: the rootfs deploy in `deploy.sh` is additive, so
-  removed packages and the old extlinux.conf would stay on the board.
+  removed packages would stay on the board. (extlinux.conf alone:
+  `./deploy.sh <ip> stm32mp-extlinux`.)
+- First flash hung at U-Boot's "Enter choice:" prompt: any `MENU` line in
+  extlinux.conf (here `MENU BACKGROUND`, from the `splashscreen` machine
+  feature) makes U-Boot prompt, and `TIMEOUT 0` then waits forever.
+  Dropping `splashscreen` removes the line; with no prompt and no DEFAULT,
+  U-Boot boots the first label.
+- `quiet` on the kernel command line: kernel and systemd status lines no
+  longer go synchronously to the 115200 baud serial console.
+
+Result (two reboots each; first boot after a flash is slower: ldconfig,
+journal catalog, dropbear host keys):
+
+| | Baseline | Step 1 |
+|---|---|---|
+| reboot -> ssh | 43.9 s | 26.4-29.1 s |
+| systemd kernel + userspace | 11.8 + 14.7 = 26.5 s | 2.7-3.2 + 11.6-11.8 = 14.3-15.0 s |
+| rootfs used | 301 MB | 271 MB |
+| RAM used after boot | 43 MB | 40 MB |
+| running services | 18 | 13 |
+
+What's left in userspace: udev coldplug still loads the bluetooth, audio,
+GPU and crypto drivers (~3 s around 12-16 s in the boot log, step 2), and
+getty on tty1 plus vconsole setup for a VT nobody types on.

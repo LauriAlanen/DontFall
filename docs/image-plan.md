@@ -15,9 +15,11 @@ ssh root@<ip> 'journalctl -b | grep "systemd\[1\]: Startup finished"; df -h /; f
 |---|------|--------|
 | 1 | Drop packagegroup-base-extended, syslog, resize InitRD, ST example DTs, extlinux menu, `quiet` | done |
 | 2 | Install only the kernel modules the board uses | done |
-| 3 | Trim the kernel config (debug, unused drivers) | todo |
-| 4 | Own distro config instead of `openstlinux-weston` (no wayland/x11/gstreamer/pulseaudio...) | todo, full rebuild |
-| 5 | Optional: release image without the Python `ros2` CLI | todo, decide later |
+| 3 | Trim the kernel config (debug, unused drivers) | remaining |
+| 4 | Own distro config instead of `openstlinux-weston` (no wayland/x11/gstreamer/pulseaudio...) | remaining, full rebuild |
+| 5 | Optional: release image without the Python `ros2` CLI | remaining, decide later |
+
+Paused after step 2 (2026-10-16); see "Remaining" at the end.
 
 ## Baseline (2026-10-15, before step 1)
 
@@ -74,9 +76,8 @@ journal catalog, dropbear host keys):
 | RAM used after boot | 43 MB | 40 MB |
 | running services | 18 | 13 |
 
-What's left in userspace: udev coldplug still loads the bluetooth, audio,
-GPU and crypto drivers (~3 s around 12-16 s in the boot log, step 2), and
-getty on tty1 plus vconsole setup for a VT nobody types on.
+Left after step 1: udev coldplug still loaded the bluetooth, audio and
+crypto drivers (~3 s around 12-16 s in the boot log), fixed in step 2.
 
 ## Step 2: kernel modules
 
@@ -102,3 +103,24 @@ getty on tty1 plus vconsole setup for a VT nobody types on.
 | RAM used after boot | 43 MB | 40 MB | 37 MB |
 | packages (kernel modules) | 1300 (761) | 1246 (761) | 513 (30) |
 | /usr/lib/modules | 28 MB | 28 MB | 3.7 MB |
+
+## Remaining
+
+State after step 2: systemd ~13.8 s (kernel ~3 s, userspace ~11 s),
+rootfs 249 MB, 37 MB RAM after boot. Userspace is now the bulk.
+
+- **Step 3, kernel config:** `CONFIG_DEBUG_INFO`, `CONFIG_FTRACE` and
+  other debug options are on; drivers for hardware the robot doesn't use
+  are built in (e.g. ethernet probing takes ~1.8 s in the kernel log).
+  Use a config fragment in meta-df, compare `dmesg` timings before/after.
+- **Step 4, own distro:** `openstlinux-weston` sets DISTRO_FEATURES
+  wayland, opengl, gstreamer, pulseaudio/pipewire, polkit, kde,
+  gobject-introspection, bluetooth, nfs, zeroconf... These still shape
+  packages through PACKAGECONFIG (systemd, dbus, util-linux, kbd +
+  vconsole-setup, bluetooth-suspend from the WiFi/BT firmware). A
+  `df` distro based on `openstlinux` with a trimmed feature list rebuilds
+  every package (hours) and must keep `optee`, `usrmerge`, `systemd`.
+  Also: getty on tty1 and vconsole setup for a VT nobody types on.
+- **Step 5, Python:** ~108 MB of the rootfs is Python for the `ros2` CLI
+  and launch. Decide whether a release image drops it (C++ nodes only) and
+  a dev image keeps it.

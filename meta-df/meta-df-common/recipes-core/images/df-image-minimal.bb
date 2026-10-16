@@ -20,6 +20,11 @@ IMAGE_INSTALL += "build-info-openstlinux"
 # them (core-boot recommends them).
 BAD_RECOMMENDATIONS += "busybox-syslog"
 
+# Kernel modules only recommended by userspace: LTTng's kernel tracer
+# (ROS 2 tracetools uses userspace tracing, lttng-ust) and OpenSSL's
+# /dev/crypto engine (nothing uses it).
+BAD_RECOMMENDATIONS += "lttng-modules cryptodev-module"
+
 # ssh access for development; dropbear keeps the footprint small
 IMAGE_FEATURES += "ssh-server-dropbear"
 

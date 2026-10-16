@@ -14,7 +14,7 @@ ssh root@<ip> 'journalctl -b | grep "systemd\[1\]: Startup finished"; df -h /; f
 | # | Step | Status |
 |---|------|--------|
 | 1 | Drop packagegroup-base-extended, syslog, resize InitRD, ST example DTs, extlinux menu, `quiet` | done |
-| 2 | Install only the kernel modules the board uses | todo |
+| 2 | Install only the kernel modules the board uses | done |
 | 3 | Trim the kernel config (debug, unused drivers) | todo |
 | 4 | Own distro config instead of `openstlinux-weston` (no wayland/x11/gstreamer/pulseaudio...) | todo, full rebuild |
 | 5 | Optional: release image without the Python `ros2` CLI | todo, decide later |
@@ -77,3 +77,28 @@ journal catalog, dropbear host keys):
 What's left in userspace: udev coldplug still loads the bluetooth, audio,
 GPU and crypto drivers (~3 s around 12-16 s in the boot log, step 2), and
 getty on tty1 plus vconsole setup for a VT nobody types on.
+
+## Step 2: kernel modules
+
+- Machine conf: `MACHINE_ESSENTIAL_EXTRA_RDEPENDS:remove = "kernel-modules"`
+  and an explicit list: rpmsg (M4 link), stm32-dbg-bus, brcmfmac (WiFi),
+  ipv6/fq_codel/iptables (systemd-networkd), DSI display + panel, touch,
+  GPU (the robot's screen), uvcvideo (USB camera). Dependencies come along
+  automatically. Watchdog, USB host/storage, MMC, ext4 and remoteproc are
+  built into the kernel.
+- Dropped: bluetooth, audio, HDMI bridge/CEC, ADC and timer triggers,
+  USB-C controller, HW crypto. Also `BAD_RECOMMENDATIONS` for
+  `lttng-modules` (LTTng kernel tracer; ROS 2 tracing is userspace,
+  lttng-ust) and `cryptodev-module` (OpenSSL /dev/crypto, unused).
+- Verified on the board: M4 link up (dontfall-app), `/dev/ttyRPMSG0/1`,
+  WiFi IP, `/dev/dri/card*`, no failed units, micro-ROS Agent shows
+  `/dontfall_m4/counter`.
+
+| | Baseline | Step 1 | Step 2 |
+|---|---|---|---|
+| reboot -> ssh | 43.9 s | 26.4-29.1 s | 24.9-26.5 s |
+| systemd kernel + userspace | 26.5 s | 14.3-15.0 s | 2.6-3.2 + 10.7-11.0 = 13.3-14.2 s |
+| rootfs used | 301 MB | 271 MB | 249 MB |
+| RAM used after boot | 43 MB | 40 MB | 37 MB |
+| packages (kernel modules) | 1300 (761) | 1246 (761) | 513 (30) |
+| /usr/lib/modules | 28 MB | 28 MB | 3.7 MB |

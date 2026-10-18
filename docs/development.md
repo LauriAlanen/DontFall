@@ -129,21 +129,22 @@ The M4 publishes over micro-ROS (`/dontfall_m4/imu`, `sensor_msgs/Imu`,
 50 Hz). The micro-ROS Agent on the A7 turns that into normal ROS 2 (DDS)
 traffic on the LAN, so any ROS 2 tool on the PC sees it.
 
-1. **Agent on the board** (no service for it yet). After every M4
-   (re)start, wait for the tty, write once (the M4 learns Linux's rpmsg
-   address from the first message), then start the Agent:
+1. **Agent on the board**: `dontfall-uros-agent.service` runs it by
+   itself. It is bound to `/dev/ttyRPMSG1`: it starts when the M4's tty
+   appears (boot, `systemctl restart dontfall-m4`, `scripts/deploy.sh`)
+   and stops when the M4 stops, so the tty never stays held open (which
+   would bring the next channel back as `ttyRPMSG2`).
 
    ```sh
-   ssh root@<board-ip>
-   while [ ! -c /dev/ttyRPMSG1 ]; do sleep 0.2; done
-   printf '\n' > /dev/ttyRPMSG1
-   micro-ros-agent serial --dev /dev/ttyRPMSG1
+   systemctl status dontfall-uros-agent
+   journalctl -u dontfall-uros-agent -f
    ```
 
    The M4 log shows `uros: publishing /dontfall_m4/imu` once the gyro is
    calibrated (keep the module still for ~1 s after the M4 starts).
-   Stop the Agent before restarting the M4, or the tty comes back as
-   `ttyRPMSG2` (then use that, or reboot).
+   Running the Agent by hand (e.g. with `-v6` for debugging): stop the
+   service first, write once (`echo > /dev/ttyRPMSG1`), then
+   `micro-ros-agent serial --dev /dev/ttyRPMSG1`.
 
 2. **ROS 2 tools on the PC**: `pc/ros.sh` runs them in a Jazzy container
    (`pc/Dockerfile`, built on first use) on the host network; windows open

@@ -53,8 +53,9 @@ only if it saves the next agent significant work.
 - **The rpmsg tty number can change.** If something still holds
   `/dev/ttyRPMSG1` open when the M4 restarts (e.g. the Agent), the new
   channel comes back as `ttyRPMSG2`, and the number can stay leaked until
-  the board reboots. Stop the Agent before restarting the M4; check
-  `ls /dev/ttyRPMSG*` before starting it.
+  the board reboots. `dontfall-uros-agent.service` is bound to the tty
+  device so this doesn't happen; a hand-started Agent must be stopped
+  before restarting the M4.
 - **micro-ROS client does nothing until Linux writes first** on
   `/dev/ttyRPMSG1` (`printf '\n' > /dev/ttyRPMSG1` before the Agent).
 - **Right after an M4 restart, `/dev/ttyRPMSG1` doesn't exist yet.** A

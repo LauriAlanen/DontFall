@@ -185,5 +185,8 @@ deployed; the counter arrives from the image's own firmware.
 - Found on the way: `dontfall-app.bb` still pinned a revision from before
   `--led`/the heartbeat (dev.conf's externalsrc hid it), so a release image
   shipped an app that failed against its own service file. Bumped too.
-- Still open for later: an Agent systemd unit (with the `printf` as
-  `ExecStartPre`), and micro-ROS liveness for the fail-safe.
+- Still open for later: micro-ROS liveness for the fail-safe.
+- Done since: `dontfall-uros-agent.service` (meta-df-common
+  `recipes-df/dontfall-uros-agent`) runs the Agent, bound to
+  `dev-ttyRPMSG1.device` with the first write as `ExecStartPre`; see
+  `docs/development.md`, "Looking at the data on the PC".

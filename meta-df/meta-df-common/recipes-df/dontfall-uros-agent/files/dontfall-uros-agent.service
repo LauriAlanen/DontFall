@@ -1,0 +1,25 @@
+# micro-ROS Agent for the M4's micro-ROS node (DontFall-M4 uros.c), on the
+# second rpmsg-tty channel. It turns the M4's XRCE-DDS traffic into normal
+# ROS 2 (DDS) on the network.
+#
+# Bound to the tty, not to boot: it starts when /dev/ttyRPMSG1 appears and
+# stops when it goes away (M4 stopped). Holding the tty open across an M4
+# restart would make the kernel give the new channel another number
+# (ttyRPMSG2). PartOf: stopping/restarting dontfall-m4 stops it first.
+[Unit]
+Description=micro-ROS Agent for the M4 (/dev/ttyRPMSG1)
+BindsTo=dev-ttyRPMSG1.device
+After=dev-ttyRPMSG1.device dontfall-m4.service
+PartOf=dontfall-m4.service
+
+[Service]
+# rpmsg learns Linux's address only from a first message, and the M4's
+# XRCE-DDS client waits for the Agent, so Linux has to write once first.
+# Bytes outside a frame are ignored.
+ExecStartPre=/bin/sh -c 'echo > /dev/ttyRPMSG1'
+ExecStart=/bin/sh -c '. /opt/ros/jazzy/setup.sh && exec micro-ros-agent serial --dev /dev/ttyRPMSG1'
+Restart=on-failure
+RestartSec=1
+
+[Install]
+WantedBy=dev-ttyRPMSG1.device

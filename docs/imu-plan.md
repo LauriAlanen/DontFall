@@ -11,7 +11,7 @@ with something you can see working. Update the status as steps land.
 | 2 | Zephyr's LSM6DSO driver: polled accel + gyro in SI units | done |
 | 3 | Data-ready interrupt (INT1) at a fixed rate, measure the timing | done |
 | 4 | Publish the raw `sensor_msgs/Imu` over micro-ROS, plot it on the PC | done |
-| 5 | Gyro bias, and the axes and signs on the bench | todo |
+| 5 | Gyro bias, and the axes and signs on the bench | bias done, signs to check by hand |
 | 6 | Tilt estimate (complementary filter), with tests; orientation and tilt on the topic | todo |
 | 7 | IMU fault detection for the fail-safe | todo |
 | 8 | Release: firmware in the image from bitbake | todo |
@@ -239,11 +239,47 @@ later"), so the module is tested loose on the table.
   Modulino / in the LSM6DSOX datasheet (right-handed). Gravity reads
   +9.81 on the axis pointing up; turning counter-clockwise about an axis
   (seen from its tip) gives positive rate on it.
-- Axis mapping: one place in the code that maps sensor axes to the body
-  frame (ROS REP 103: x forward, y left, z up). Identity for now; the
-  real mapping is filled in when the robot is built.
 - Done when: the bias is subtracted (gyro ~0 at rest right after boot)
   and each axis responds with the datasheet sign.
+
+Decided: if the module moves during calibration, retry forever. Running
+on an uncalibrated gyro is worse than waiting. Until calibration has
+worked, `imu_latest()` has no sample, so nothing is published.
+
+The sensor-to-body axis mapping moved to step 6: it has no user before
+the filter, and the ROS topic stays in the sensor frame (`imu_link`);
+in ROS the mounting becomes a TF transform once there is a robot.
+
+Code (DontFall-M4, `imu.c`): skip the first 85 samples (~100 ms, gyro
+turn-on garbage of a few rad/s), then average 850 samples (~1 s). Accept
+if every axis's max - min stays under 0.1 rad/s and |bias| < 0.1 rad/s
+(zero-rate level is ±1 dps typical), else start a new window. Samples
+are integer micro-units, so the subtraction at 850 Hz is integer maths.
+The summary thread prints each failed window and the result:
+
+    imu: gyro bias [rad/s] x -0.0031 y  0.0015 z -0.0073 (try 1)
+
+Measured:
+- Bias repeats to 0.1 mrad/s over a dozen boots (about 0.2-0.4 °/s per
+  axis; uncorrected, z alone would integrate to ~25° per minute).
+- After calibration, at rest: gyro mean ~0.0002 rad/s, std 1.1-1.7
+  mrad/s per axis. Accel std ~0.025 m/s².
+- Quiet desk: window range ~0.01 rad/s. During one test, desk vibration
+  gave 0.04-0.11, which failed the first try at 0.03 rad/s; 0.1 rad/s
+  lets that through and still rejects handling. If a slow steady turn
+  ever gets accepted as bias, a stricter test is two windows in a row
+  that must agree.
+
+Found on the way: **every second M4 start hung** in the LSM6DSO driver
+init. GPIO, EXTI and SPI5 are not reset when the M4 restarts, and the
+IMU keeps pulsing INT1 while the M4 is stopped, so EXTI3 is pending at
+the next boot. The driver's interrupt thread then loops `while (1)`
+until the data-ready flags clear, but with no trigger handler set yet
+nobody reads the data, and that coop thread spins forever. Its chip reset
+stops the pulses, so the following boot works. Fixed by
+`patches/zephyr/0003-sensor-lsm6dso-dont-spin-on-drdy-without-handler.patch`
+(loop only on flags that have a handler). Verified: 12 restarts in a row.
+Also a fail-safe point for step 7: one stray edge could hang the M4.
 
 ## Step 6: tilt estimate
 
@@ -255,6 +291,8 @@ later"), so the module is tested loose on the table.
 - Tests (control logic, so this is a critical part): constant tilt
   converges to the right angle, gyro bias doesn't make the angle drift,
   the angle follows a step within the expected time.
+- Sensor-to-body axis mapping (ROS REP 103: x forward, y left, z up) in
+  one place, used by the filter. Identity until the robot is built.
 - Add the filter's orientation to the `sensor_msgs/Imu` from step 4
   (and its covariance), and publish the tilt angle on its own (e.g.
   `std_msgs/Float32`) for plotting. `CONFIG_MICROROS_PUBLISHERS` goes up.

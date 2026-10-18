@@ -140,7 +140,10 @@ traffic on the LAN, so any ROS 2 tool on the PC sees it.
    micro-ros-agent serial --dev /dev/ttyRPMSG1
    ```
 
-   The M4 log shows `uros: publishing /dontfall_m4/imu`.
+   The M4 log shows `uros: publishing /dontfall_m4/imu` once the gyro is
+   calibrated (keep the module still for ~1 s after the M4 starts).
+   Stop the Agent before restarting the M4, or the tty comes back as
+   `ttyRPMSG2` (then use that, or reboot).
 
 2. **ROS 2 tools on the PC**: `pc/ros.sh` runs them in a Jazzy container
    (`pc/Dockerfile`, built on first use) on the host network; windows open

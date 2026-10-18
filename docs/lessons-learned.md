@@ -37,9 +37,24 @@ only if it saves the next agent significant work.
 
 ## M4 (Zephyr)
 
+- **`scripts/build.sh` fails with `/usr/bin/arm-none-eabi-gcc --version`
+  failed**: VS Code's CMake Tools configured `app/` into `build/` with the
+  host compiler. `scripts/build.sh -p always` fixes it; point CMake Tools
+  elsewhere (`cmake.buildDirectory`) or disable its configure-on-open.
 - **Memory layout / resource table:** read `docs/ros-plan.md` step 4 before
   touching the linker or `zephyr,flash`/`zephyr,sram`. `CONFIG_XIP=n` looks
   simpler but the heap overwrites `.resource_table` (rpmsg fails with -2).
+- **Restarting the M4 does not reset its peripherals.** GPIO, EXTI, SPI
+  and the sensors keep their state (and keep running) while the M4 is
+  stopped, so the next boot can find pending interrupts. Symptom: every
+  second start hangs with an empty trace0 and no `/dev/ttyRPMSG*`.
+  Test with a few `stop`/`start` cycles, and find the hang with
+  temporary `SYS_INIT` printk markers at each init level.
+- **The rpmsg tty number can change.** If something still holds
+  `/dev/ttyRPMSG1` open when the M4 restarts (e.g. the Agent), the new
+  channel comes back as `ttyRPMSG2`, and the number can stay leaked until
+  the board reboots. Stop the Agent before restarting the M4; check
+  `ls /dev/ttyRPMSG*` before starting it.
 - **micro-ROS client does nothing until Linux writes first** on
   `/dev/ttyRPMSG1` (`printf '\n' > /dev/ttyRPMSG1` before the Agent).
 - **Right after an M4 restart, `/dev/ttyRPMSG1` doesn't exist yet.** A

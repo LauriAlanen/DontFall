@@ -27,6 +27,9 @@ only if it saves the next agent significant work.
 - **meta-ros recipes that fetch from git may lack `S`** (written for newer
   bitbake). The error looks like a broken patch ("can't find file to
   patch") because the source dir is empty; set `S = "${WORKDIR}/git"`.
+- **Don't add `meta-zephyr-bsp`**, only `meta-zephyr-core`. The bsp layer
+  ships its own `stm32mp157c-dk2.conf`, which clashes with our A7 machine
+  of the same name.
 - **Never hand-write patches.** Edit the unpacked source under git and use
   `git format-patch`/`git diff`; hand-made patches failed to apply.
 
@@ -65,6 +68,11 @@ only if it saves the next agent significant work.
   and restart the M4.
 
 ## Hardware
+
+- **Both cores share the GPIO register banks.** Zephyr's STM32 GPIO driver
+  and Linux's stm32 pinctrl serialise access through the HSEM, so an M4
+  pin is safe as long as the Linux devicetree doesn't claim it (no DT or
+  boot-chain change needed). Record ownership in `docs/hardware.md`.
 
 - **Modulino Movement (IMU) is wired for I2C only from the factory.** SPI
   needs board mods (SA0 jumper, CS bridge) and uses SDA/SCL, not the

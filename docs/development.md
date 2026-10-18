@@ -123,6 +123,51 @@ cat /sys/kernel/debug/remoteproc/remoteproc0/trace0   # "heartbeat: A7 link up/l
 to the kernel heartbeat trigger. Restarting the M4 is fine: the app reopens
 `/dev/ttyRPMSG0` when it comes back.
 
+## Looking at the data on the PC
+
+The M4 publishes over micro-ROS (`/dontfall_m4/imu`, `sensor_msgs/Imu`,
+50 Hz). The micro-ROS Agent on the A7 turns that into normal ROS 2 (DDS)
+traffic on the LAN, so any ROS 2 tool on the PC sees it.
+
+1. **Agent on the board** (no service for it yet). After every M4
+   (re)start, wait for the tty, write once (the M4 learns Linux's rpmsg
+   address from the first message), then start the Agent:
+
+   ```sh
+   ssh root@<board-ip>
+   while [ ! -c /dev/ttyRPMSG1 ]; do sleep 0.2; done
+   printf '\n' > /dev/ttyRPMSG1
+   micro-ros-agent serial --dev /dev/ttyRPMSG1
+   ```
+
+   The M4 log shows `uros: publishing /dontfall_m4/imu`.
+
+2. **ROS 2 tools on the PC**: `pc/ros.sh` runs them in a Jazzy container
+   (`pc/Dockerfile`, built on first use) on the host network; windows open
+   through WSLg. One-time WSL2 network/firewall setup: `docs/ros-plan.md`
+   step 2c.
+
+   ```sh
+   pc/ros.sh ros2 topic hz /dontfall_m4/imu       # ~50 Hz
+   pc/ros.sh ros2 topic echo /dontfall_m4/imu
+   pc/ros.sh plotjuggler                          # live plots
+   pc/ros.sh rviz2                                # 3D view
+   ```
+
+3. **PlotJuggler** (best for watching sensor values): Streaming panel ->
+   `ROS2 Topic Subscriber` -> Start -> tick `/dontfall_m4/imu` -> OK. The
+   fields appear on the left (`/dontfall_m4/imu/linear_acceleration/x`
+   etc.); drag them into the plot, right-click a plot to split it (e.g.
+   accel in one, gyro in the other). The topic is best effort: if nothing
+   arrives, check the subscriber's QoS/reliability setting. File -> Save
+   layout keeps the setup for next time.
+
+4. **RViz** shows the IMU in 3D with the `Imu` display from
+   `rviz_imu_plugin` (Add -> By display type -> rviz_imu_plugin/Imu, topic
+   `/dontfall_m4/imu`, Fixed Frame `imu_link`, Reliability Best Effort).
+   Until the tilt filter publishes an orientation (imu-plan step 6) only
+   the acceleration vector is meaningful.
+
 ## Release
 
 1. Commit and push `DontFall-app` and/or `DontFall-M4`.

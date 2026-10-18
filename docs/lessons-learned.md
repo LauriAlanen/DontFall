@@ -15,6 +15,13 @@ only if it saves the next agent significant work.
 - Kill anything you started for a test (e.g. `micro_ros_agent`) before
   handing the board back.
 
+## PC (ROS 2 in Docker)
+
+- **`ros2` CLI hangs in a container when it spawns its own daemon**, and
+  a ROS process as PID 1 ignores SIGTERM/Ctrl-C (`timeout` doesn't stop
+  it). `pc/ros.sh` uses `docker run --init` and starts the daemon first.
+  Use it, or pass `--no-daemon` (not accepted by `ros2 topic hz`).
+
 ## Yocto
 
 - **meta-ros recipes that fetch from git may lack `S`** (written for newer
@@ -35,6 +42,11 @@ only if it saves the next agent significant work.
   simpler but the heap overwrites `.resource_table` (rpmsg fails with -2).
 - **micro-ROS client does nothing until Linux writes first** on
   `/dev/ttyRPMSG1` (`printf '\n' > /dev/ttyRPMSG1` before the Agent).
+- **Right after an M4 restart, `/dev/ttyRPMSG1` doesn't exist yet.** A
+  `printf` to it then creates a regular file, the Agent fails with
+  `get termios attributes error | errno: 25`, and the M4 got no rpmsg
+  channels. Wait for `[ -c /dev/ttyRPMSG1 ]`; `rm` a stale regular file
+  and restart the M4.
 
 ## Hardware
 

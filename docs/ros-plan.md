@@ -93,7 +93,8 @@ flash. First build is long.
 
 Node `dontfall_m4` on the M4 publishes a `std_msgs/Int32` counter on
 `/dontfall_m4/counter` once a second; verified with `ros2 topic echo` on
-the PC. Code in DontFall-M4: `app/src/uros.c` (node),
+the PC. (Later replaced by the raw IMU, `/dontfall_m4/imu`: imu-plan
+step 4.) Code in DontFall-M4: `app/src/uros.c` (node),
 `app/src/uros_transport.c` (transport).
 
 - **Memory layout first.** The M4's "flash" was RETRAM (64 KB) and already

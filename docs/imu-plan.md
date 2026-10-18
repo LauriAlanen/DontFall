@@ -10,9 +10,9 @@ with something you can see working. Update the status as steps land.
 | 1 | Wire the Modulino to SPI5, read WHO_AM_I with raw SPI from the M4 | done |
 | 2 | Zephyr's LSM6DSO driver: polled accel + gyro in SI units | done |
 | 3 | Data-ready interrupt (INT1) at a fixed rate, measure the timing | done |
-| 4 | Gyro bias, and the axes and signs on the bench | todo |
-| 5 | Tilt estimate (complementary filter), with tests | todo |
-| 6 | Publish `sensor_msgs/Imu` and the tilt over micro-ROS | todo |
+| 4 | Publish the raw `sensor_msgs/Imu` over micro-ROS, plot it on the PC | done |
+| 5 | Gyro bias, and the axes and signs on the bench | todo |
+| 6 | Tilt estimate (complementary filter), with tests; orientation and tilt on the topic | todo |
 | 7 | IMU fault detection for the fail-safe | todo |
 | 8 | Release: firmware in the image from bitbake | todo |
 
@@ -184,7 +184,50 @@ Measured (module at rest, 8 MHz SPI):
   (`CONFIG_SPI_STM32_INTERRUPT`, an interrupt per few bytes); SPI DMA
   would cut that if the M4 gets tight.
 
-## Step 4: gyro bias and orientation
+## Step 4: raw IMU over micro-ROS
+
+Moved up from after the tilt filter: seeing the data plotted on the PC
+makes every later step (bias, axis signs, filter tuning) easier to check
+than reading printk lines.
+
+- Publish `sensor_msgs/Imu` on `/dontfall_m4/imu`, `frame_id` `imu_link`,
+  angular velocity and linear acceleration as measured. No orientation
+  yet: `orientation_covariance[0] = -1` (REP 145: "no orientation").
+  Other covariances all 0 = unknown, until they are measured.
+- 50 Hz, best effort (sensor data QoS): it is telemetry, a lost message
+  doesn't matter and must never hold anything up.
+- Sampling stays in the driver's thread at the sensor rate. The micro-ROS
+  thread only copies the latest sample, so a slow or missing Agent can't
+  slow the IMU down.
+- Header stamp from the Agent's clock (`rmw_uros_sync_session`), so the
+  PC tools see real times.
+- Replaces the hello-world counter (same publisher count). Check RAM and
+  code size against `docs/ros-plan.md` step 4.
+- Done when: `ros2 topic hz` shows ~50 Hz on the PC and PlotJuggler
+  plots the six values live.
+
+How to look at it from the PC: `docs/development.md`, "Looking at the
+data on the PC" (`pc/ros.sh`, PlotJuggler, RViz).
+
+Code (DontFall-M4): `imu_latest()` in `imu.c` copies the newest sample
+under the same spinlock the sampling thread uses; `uros.c` publishes it
+from a 20 ms rclc timer with `rclc_publisher_init_best_effort` and syncs
+the clock with the Agent after creating the entities.
+
+Verified: on the PC, `ros2 topic hz` ~49.6 Hz, `ros2 topic echo` shows
+`frame_id: imu_link`, `orientation_covariance[0] = -1`, gyro ~0 and
+|a| ~10 m/s², and PlotJuggler plots the six values live. Stamps were
+~0.6 s ahead of the PC clock: the board (NTP) and the PC (WSL) clocks
+differ, not a problem for plotting.
+
+- **Code size: 118.6 KB of 128 KB (90%)**, up 14 KB. About 4.4 KB is the
+  `sensor_msgs/Imu` type support, ~2.5 KB software double maths (the
+  M4's FPU is single precision only, ROS messages are double). Motor
+  control will need more room: options then are less micro-ROS (fewer
+  entities, smaller MTU), putting code in the free RETRAM (only the
+  vector table is there) or moving the SRAM1/SRAM2 split.
+
+## Step 5: gyro bias and orientation
 
 Bench only: there is no robot yet (VISION.md, "Bench first, robot
 later"), so the module is tested loose on the table.
@@ -202,7 +245,7 @@ later"), so the module is tested loose on the table.
 - Done when: the bias is subtracted (gyro ~0 at rest right after boot)
   and each axis responds with the datasheet sign.
 
-## Step 5: tilt estimate
+## Step 6: tilt estimate
 
 - Complementary filter: integrate the pitch gyro, correct slowly with the
   angle from the accelerometer. One tuning constant (time constant).
@@ -212,22 +255,12 @@ later"), so the module is tested loose on the table.
 - Tests (control logic, so this is a critical part): constant tilt
   converges to the right angle, gyro bias doesn't make the angle drift,
   the angle follows a step within the expected time.
-- Done when: the tilt angle printed on the board matches a protractor or
-  phone inclinometer to about a degree, and holds steady at rest.
-
-## Step 6: over micro-ROS
-
-- Publish `sensor_msgs/Imu` (`frame_id` e.g. `imu_link`, orientation from
-  the filter, angular velocity, linear acceleration, covariances filled in
-  or marked unknown) and the tilt angle. Low rate (e.g. 20-50 Hz): it is
-  telemetry, the control loop never waits on it.
-- `CONFIG_MICROROS_PUBLISHERS` goes up. Check RAM and code size against the
-  numbers in `docs/ros-plan.md` step 4.
-- Sampling and filtering run in their own thread at the sensor rate. The
-  micro-ROS thread only copies the latest values, so a slow or missing
-  Agent can't slow the IMU down.
-- Done when: `ros2 topic hz` / `ros2 topic echo` on the PC show the data,
-  and RViz shows the orientation following the board.
+- Add the filter's orientation to the `sensor_msgs/Imu` from step 4
+  (and its covariance), and publish the tilt angle on its own (e.g.
+  `std_msgs/Float32`) for plotting. `CONFIG_MICROROS_PUBLISHERS` goes up.
+- Done when: the tilt angle matches a protractor or phone inclinometer to
+  about a degree and holds steady at rest, and RViz (`rviz_imu_plugin`)
+  shows the orientation following the module.
 
 ## Step 7: fault detection
 

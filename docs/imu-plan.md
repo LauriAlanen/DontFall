@@ -8,7 +8,7 @@ with something you can see working. Update the status as steps land.
 | # | Step | Status |
 |---|------|--------|
 | 1 | Wire the Modulino to SPI5, read WHO_AM_I with raw SPI from the M4 | done |
-| 2 | Zephyr's LSM6DSO driver: polled accel + gyro in SI units | todo |
+| 2 | Zephyr's LSM6DSO driver: polled accel + gyro in SI units | done |
 | 3 | Data-ready interrupt (INT1) at a fixed rate, measure the timing | todo |
 | 4 | Gyro bias and the mounting orientation (robot frame) | todo |
 | 5 | Tilt estimate (complementary filter), with tests | todo |
@@ -121,6 +121,19 @@ How the Modulino problems were found (temporary code, removed):
 - Sanity checks: flat on the table, one accel axis reads about ±9.81 m/s²
   and the other two about 0. Gyro about 0 at rest. Rotate the board by
   hand and see the right axis respond with the right sign.
+
+Code (DontFall-M4): `hal_st` in `west.yml`, `CONFIG_SENSOR=y`, ODR and
+full scale as DT properties on the `imu` node (the driver writes them at
+boot; without them the chip stays powered down), `app/src/imu.c` polls
+at 4 Hz with the generic sensor API and prints fixed point (printk has
+no float support). `hal_st` is b77157f6 on both sides, as Zephyr's own
+`west.yml` and meta-zephyr's 3.7.0 inc pin it; `check-zephyr-pin.sh`
+compares the Zephyr revision, which fixes the module revisions.
+
+Verified: at rest, |a| ≈ 10.0 m/s² (module tilted on its wires, e.g.
+x 4.6, y -7.6, z -4.7) and gyro within ±0.06 rad/s. Tilting by hand
+moves the ~9.81 m/s² between the axes. Signs and the robot frame are
+checked in step 4.
 
 ## Step 3: data-ready interrupt and timing
 

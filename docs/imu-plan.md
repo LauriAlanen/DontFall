@@ -11,7 +11,7 @@ with something you can see working. Update the status as steps land.
 | 2 | Zephyr's LSM6DSO driver: polled accel + gyro in SI units | done |
 | 3 | Data-ready interrupt (INT1) at a fixed rate, measure the timing | done |
 | 4 | Publish the raw `sensor_msgs/Imu` over micro-ROS, plot it on the PC | done |
-| 5 | Gyro bias, and the axes and signs on the bench | bias done, signs to check by hand |
+| 5 | Gyro bias, and the axes and signs on the bench | done |
 | 6 | Tilt estimate (complementary filter), with tests; orientation and tilt on the topic | todo |
 | 7 | IMU fault detection for the fail-safe | todo |
 | 8 | Release: firmware in the image from bitbake | todo |
@@ -258,6 +258,12 @@ are integer micro-units, so the subtraction at 850 Hz is integer maths.
 The summary thread prints each failed window and the result:
 
     imu: gyro bias [rad/s] x -0.0031 y  0.0015 z -0.0073 (try 1)
+
+Axes and signs checked by hand in PlotJuggler: the axis pointing up
+reads +9.81 m/s², and turning about an axis by the right-hand rule gives
+positive rate on it, for all three axes, matching the datasheet.
+(Accel is checked by holding still in each orientation, not by moving:
+a push gives a spike one way and the stop one the other way.)
 
 Measured:
 - Bias repeats to 0.1 mrad/s over a dozen boots (about 0.2-0.4 °/s per

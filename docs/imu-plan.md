@@ -9,7 +9,7 @@ with something you can see working. Update the status as steps land.
 |---|------|--------|
 | 1 | Wire the Modulino to SPI5, read WHO_AM_I with raw SPI from the M4 | done |
 | 2 | Zephyr's LSM6DSO driver: polled accel + gyro in SI units | done |
-| 3 | Data-ready interrupt (INT1) at a fixed rate, measure the timing | todo |
+| 3 | Data-ready interrupt (INT1) at a fixed rate, measure the timing | done |
 | 4 | Gyro bias and the mounting orientation (robot frame) | todo |
 | 5 | Tilt estimate (complementary filter), with tests | todo |
 | 6 | Publish `sensor_msgs/Imu` and the tilt over micro-ROS | todo |
@@ -147,6 +147,43 @@ checked in step 4.
   the sensor can clock the balance loop.
 - Note the SPI clock here too: try up to 10 MHz and keep what is
   reliable with the real wires.
+
+EXTI3 check: one EXTI line serves pin 3 of every port, and the mux
+(EXTICR) is shared by the A7 and the M4. On the board Linux uses only
+GPIO EXTI line 7 (`stm32gpio 7`, the SD card detect); PB3, PD3 and PE3
+are claimed only as alternate functions, not as interrupts. So EXTI3 is
+free for PF3. Zephyr's EXTI code writes the M4's own mask register
+(`C2IMR1`) on the MP1.
+
+Decided: ODR 833 Hz for accel and gyro (balance loops usually run at
+200-500 Hz; this leaves headroom). SPI 10 MHz requested, 8 MHz real
+(SPI5 kernel clock is 64 MHz, dividers are powers of two).
+
+Code (DontFall-M4): `irq-gpios` (PF3), `int-pin = <1>` and `drdy-pulsed`
+on the `imu` node, `CONFIG_LSM6DSO_TRIGGER_OWN_THREAD`. `imu.c` sets an
+accel data-ready trigger; the handler (in the driver's coop thread)
+fetches accel + gyro and records the gap since the last sample and the
+fetch time. A preemptible thread prints the summary once a second.
+Pulsed, not latched: the driver masks the GPIO interrupt while it reads,
+and a latched INT1 that goes high in that window never makes a new edge,
+so sampling would stop for good. Pulsed only loses one sample.
+
+Measured (module at rest, 8 MHz SPI):
+
+    imu: 850 Hz, gap us min 1176 avg 1176 max 1176, fetch us max 55, errors 0
+
+- The rate is 850 Hz, not 833: the chip's ODR comes from its internal
+  oscillator, here about 2% fast (the M4 clock is from a crystal). The
+  tilt filter must use the measured time between samples, not 1/833 s.
+- Over 2 minutes every window was 850 samples with 0 errors (no lost
+  samples, no stall). Gaps stayed within 1162-1190 µs (±14 µs, mostly
+  ±3), so the sensor can clock the balance loop. 8 MHz SPI is reliable
+  on the current wires.
+- One sample fetch is ~55 µs at 8 MHz (12 data bytes plus commands);
+  with the driver's two status reads per sample that is roughly 7% of
+  the M4 (estimate, not measured). The SPI driver is interrupt driven
+  (`CONFIG_SPI_STM32_INTERRUPT`, an interrupt per few bytes); SPI DMA
+  would cut that if the M4 gets tight.
 
 ## Step 4: gyro bias and orientation
 

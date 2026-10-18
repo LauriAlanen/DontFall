@@ -132,7 +132,7 @@ or A7 (Linux).
 | IMU SPI MOSI | PF9 | CN2 19 | SPI5_MOSI | M4 | |
 | IMU SPI MISO | PF8 | CN2 21 | SPI5_MISO | M4 | |
 | IMU chip select | PF6 | CN2 24 | GPIO output (SPI5 `cs-gpios`) | M4 | active low; hardware NSS not used |
-| IMU INT1 | PF3 | CN2 26 | GPIO input (EXTI3) | M4 | wired, not used until imu-plan step 3 |
+| IMU INT1 | PF3 | CN2 26 | GPIO input (EXTI3) | M4 | data ready, pulsed, active high (imu-plan step 3) |
 
 ## Parts
 

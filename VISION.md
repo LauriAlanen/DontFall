@@ -74,7 +74,8 @@ Principles:
   sources like the rest of the image (see
   `docs/ros-plan.md`).
 - **Undecided:** the IMU, encoders/position sensors, the second motor and
-  the mechanical build.
+  the mechanical build. There is no robot yet: parts are tested one by
+  one on the bench (see "Bench first, robot later" below).
 
 Board details and pin usage: `docs/hardware.md`.
 
@@ -83,6 +84,14 @@ Board details and pin usage: `docs/hardware.md`.
 This is a learning project first. The robot is the north star, not a
 deadline.
 
+- **Bench first, robot later.** There is no robot to test on, and there
+  won't be one soon. Every part (IMU, motor control, encoders, ...) is
+  brought up and tested on its own on the bench first. Only when the
+  parts all work separately are they combined, and only then does the
+  robot itself get built. So don't plan steps that need a mounted part,
+  a robot frame or a real chassis. Where a step would need one, test the
+  part on its own now and leave a clear hook (e.g. one place for the
+  axis mapping) for when the robot exists.
 - **Small, digestible steps.** Keep each change small enough that the
   developer can read and understand all of it in one sitting. Never deliver
   a big feature in one go or dump hundreds of lines at once. Split the work

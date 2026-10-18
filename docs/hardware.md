@@ -147,6 +147,7 @@ or A7 (Linux).
 | Current-limited bench supply, 12-24 V | planned, after the IMU works |
 | Second motor | undecided |
 
-First bench target: a free-standing reaction wheel balancer (one motor
-with a flywheel on top, tilt from the IMU, no pivot encoder). Pins are
+First bench target, once the IMU and the motor work on their own: a
+free-standing reaction wheel balancer (one motor with a flywheel on top,
+tilt from the IMU, no pivot encoder). Pins are
 not assigned yet.

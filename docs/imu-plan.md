@@ -10,7 +10,7 @@ with something you can see working. Update the status as steps land.
 | 1 | Wire the Modulino to SPI5, read WHO_AM_I with raw SPI from the M4 | done |
 | 2 | Zephyr's LSM6DSO driver: polled accel + gyro in SI units | done |
 | 3 | Data-ready interrupt (INT1) at a fixed rate, measure the timing | done |
-| 4 | Gyro bias and the mounting orientation (robot frame) | todo |
+| 4 | Gyro bias, and the axes and signs on the bench | todo |
 | 5 | Tilt estimate (complementary filter), with tests | todo |
 | 6 | Publish `sensor_msgs/Imu` and the tilt over micro-ROS | todo |
 | 7 | IMU fault detection for the fail-safe | todo |
@@ -132,8 +132,7 @@ compares the Zephyr revision, which fixes the module revisions.
 
 Verified: at rest, |a| ≈ 10.0 m/s² (module tilted on its wires, e.g.
 x 4.6, y -7.6, z -4.7) and gyro within ±0.06 rad/s. Tilting by hand
-moves the ~9.81 m/s² between the axes. Signs and the robot frame are
-checked in step 4.
+moves the ~9.81 m/s² between the axes. Signs are checked in step 4.
 
 ## Step 3: data-ready interrupt and timing
 
@@ -187,14 +186,21 @@ Measured (module at rest, 8 MHz SPI):
 
 ## Step 4: gyro bias and orientation
 
-- Gyro bias: average N samples at startup while the robot is still,
+Bench only: there is no robot yet (VISION.md, "Bench first, robot
+later"), so the module is tested loose on the table.
+
+- Gyro bias: average N samples at startup while the module is still,
   subtract it afterwards. Decide what happens if it moves during that
   window (e.g. retry while the variance is too high).
-- Mounting: fix how the Modulino sits on the robot, write down the axis
-  mapping from sensor to robot frame (ROS REP 103: x forward, y left,
-  z up) and apply it in one place.
-- Done when: rotating the robot about its pitch axis shows up on the
-  robot-frame axis with the REP 103 sign.
+- Axes and signs: check the readings against the axes printed on the
+  Modulino / in the LSM6DSOX datasheet (right-handed). Gravity reads
+  +9.81 on the axis pointing up; turning counter-clockwise about an axis
+  (seen from its tip) gives positive rate on it.
+- Axis mapping: one place in the code that maps sensor axes to the body
+  frame (ROS REP 103: x forward, y left, z up). Identity for now; the
+  real mapping is filled in when the robot is built.
+- Done when: the bias is subtracted (gyro ~0 at rest right after boot)
+  and each axis responds with the datasheet sign.
 
 ## Step 5: tilt estimate
 
@@ -244,8 +250,9 @@ The balance controller must know when it can't trust the tilt
 
 ## Open questions
 
-- Balance loop rate, and with it the IMU ODR (step 3).
-- Where the IMU sits on the robot (step 4); close to the pivot axis keeps
-  linear acceleration from fooling the accelerometer.
+- Balance loop rate. The IMU runs at 833 Hz nominal (step 3), so any
+  rate up to that works.
+- Where the IMU sits on the robot, once there is one; close to the pivot
+  axis keeps linear acceleration from fooling the accelerometer.
 - Whether INT2 is needed at all (e.g. for FIFO or free-fall). Not wired
   for now.

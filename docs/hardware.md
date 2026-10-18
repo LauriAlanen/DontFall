@@ -128,6 +128,11 @@ or A7 (Linux).
 |--------|---------|------------|-----------------|------|-------|
 | LD7 orange user LED | PH7 | on-board | GPIO output | M4 | A7 link status: toggles every 500 ms while PINGs from the A7 arrive, off otherwise (Zephyr `led0`) |
 | LD8 blue user LED | PD11 | on-board | GPIO via Linux LED class (`/sys/class/leds/heartbeat`) | A7 | M4 link status: toggles every 1000 ms while PONGs from the M4 arrive, off otherwise; dontfall-app takes it over from the heartbeat trigger |
+| IMU SPI clock | PF7 | CN2 23 | SPI5_SCK | M4 | LSM6DSOX on the Modulino Movement, SPI mode 3 (docs/imu-plan.md) |
+| IMU SPI MOSI | PF9 | CN2 19 | SPI5_MOSI | M4 | |
+| IMU SPI MISO | PF8 | CN2 21 | SPI5_MISO | M4 | |
+| IMU chip select | PF6 | CN2 24 | GPIO output (SPI5 `cs-gpios`) | M4 | active low; hardware NSS not used |
+| IMU INT1 | PF3 | CN2 26 | GPIO input (EXTI3) | M4 | wired, not used until imu-plan step 3 |
 
 ## Parts
 
@@ -136,7 +141,7 @@ or A7 (Linux).
 | STM32MP157C-DK2 | on hand |
 | MB1407 DSI display, 480x800 (comes with the DK2) | on hand, the robot's screen |
 | USB camera | on hand, not used yet |
-| Arduino Modulino Movement (ABX00101), ST LSM6DSOX 6-axis IMU; SPI + INT1/INT2 on the 1x10 header (solder pins), power from the 3.3V/GND I2C header pins, no I2C pull-ups fitted | ordered |
+| Arduino Modulino Movement (ABX00101), ST LSM6DSOX 6-axis IMU; SPI clock/data-in are the SDA/SCL pins (not the 1x10 header's SCx/SDx), SDO/CS/INT on the 1x10 header, SPI needs the SA0 jumper cut and the CS-to-3V3 bridge removed, no I2C pull-ups fitted. Details: docs/imu-plan.md | on hand, modded for SPI, works |
 | SimpleFOCMini v2.3 (DRV8316, 5-35 V, 3x low-side current sense), x2-3 | planned, after the IMU works |
 | iPower GM4108H-120T gimbal motor with AS5048A encoder (SPI, 14-bit), x1 | planned, after the IMU works |
 | Current-limited bench supply, 12-24 V | planned, after the IMU works |

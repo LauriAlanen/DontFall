@@ -35,3 +35,12 @@ only if it saves the next agent significant work.
   simpler but the heap overwrites `.resource_table` (rpmsg fails with -2).
 - **micro-ROS client does nothing until Linux writes first** on
   `/dev/ttyRPMSG1` (`printf '\n' > /dev/ttyRPMSG1` before the Agent).
+
+## Hardware
+
+- **Modulino Movement (IMU) is wired for I2C only from the factory.** SPI
+  needs board mods (SA0 jumper, CS bridge) and uses SDA/SCL, not the
+  header's SCx/SDx. See `docs/imu-plan.md`, Wiring.
+- **Flaky reads that recover after bus activity = missing GND**, not SPI
+  settings. Check the ground wire before tuning pins. Bit-banging the same
+  pins is a quick way to split hardware from peripheral/driver problems.

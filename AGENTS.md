@@ -35,6 +35,7 @@ Workflow overview: `docs/development.md`. Sibling repos:
 - Full image: `./build.sh </dev/null` (= `bitbake df-image-minimal`)
 - App host build: `cd ../DontFall-app && cmake -B build && cmake --build build` (no tests yet)
 - M4 dev build: `../DontFall-M4-ws/DontFall-M4/scripts/build.sh </dev/null`
+- M4 host tests (ztest/twister, native_sim): `../DontFall-M4-ws/DontFall-M4/scripts/test.sh </dev/null`
 - Zephyr pin check: `../DontFall-M4-ws/DontFall-M4/scripts/check-zephyr-pin.sh`
 - Board checks need the board IP from the human (`./deploy.sh <ip> ...`,
   `scripts/deploy.sh <ip> --log`). Never touch the signed boot chain

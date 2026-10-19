@@ -12,7 +12,9 @@ with something you can see working. Update the status as steps land.
 | 3 | Data-ready interrupt (INT1) at a fixed rate, measure the timing | done |
 | 4 | Publish the raw `sensor_msgs/Imu` over micro-ROS, plot it on the PC | done |
 | 5 | Gyro bias, and the axes and signs on the bench | done |
-| 6 | Tilt estimate (complementary filter), with tests; orientation and tilt on the topic | todo |
+| 6a | Tilt filter (complementary, roll + pitch) as plain C, ztest on the host | done |
+| 6b | Run the filter on the M4, print the angles, check against an inclinometer | todo |
+| 6c | Orientation in `sensor_msgs/Imu` and a tilt topic, RViz | todo |
 | 7 | IMU fault detection for the fail-safe | todo |
 | 8 | Release: firmware in the image from bitbake | todo |
 
@@ -305,6 +307,54 @@ Also a fail-safe point for step 7: one stray edge could hang the M4.
 - Done when: the tilt angle matches a protractor or phone inclinometer to
   about a degree and holds steady at rest, and RViz (`rviz_imu_plugin`)
   shows the orientation following the module.
+
+Split into three steps, each ending with something to see:
+
+- **6a** filter and tests on the host only; the firmware doesn't use it
+  yet.
+- **6b** run it in the sampling thread with the measured time between
+  samples, print roll and pitch in the summary, compare with an
+  inclinometer. Floats on the M4 need `CONFIG_FPU` (off today: maths is
+  software float); check code size.
+- **6c** orientation quaternion (roll, pitch, yaw 0 with a large yaw
+  covariance, REP 145) in the Imu message, tilt as `std_msgs/Float32`,
+  RViz.
+
+Decided: roll and pitch, not pitch alone. Balancing uses pitch only, but
+the Imu message needs a full orientation, and roll costs one more
+filter. Time constant 0.5 s to start, a common value for balancing
+robots; tune on the robot. Tests use Zephyr's ztest, run by twister on
+`native_sim/native/64` (the 32-bit `native_sim` needs gcc multilib).
+
+### 6a: filter and tests
+
+Code (DontFall-M4): `app/src/tilt.c`/`tilt.h` (not in the firmware build
+until 6b), tests in `tests/tilt`, run with `scripts/test.sh` (twister in
+the Zephyr container; the container gained `tabulate`, `natsort`,
+`colorama` and `ply` for it).
+
+- Accelerometer angles: roll = atan2(ay, az), pitch = atan2(-ax,
+  sqrt(ay² + az²)), from gravity in body axes g·(-sin θ, sin φ cos θ,
+  cos φ cos θ).
+- Gyro: body rates converted to Euler angle rates, not used raw. Raw
+  rates are only right near level: turning in place while leaning would
+  leak the yaw rate into roll (r·tan θ).
+- Blend: angle += k·(accel angle - angle), k = dt / (τ + dt), the
+  discrete first-order low pass. The difference is wrapped to ±180°, so
+  a robot lying upside down doesn't swing roll back through 0.
+- The first sample takes the accelerometer angles, so the estimate is
+  right at once instead of converging from 0 over ~2 s.
+- Sensor-to-body mapping: the `mount` matrix in `tilt.c`, identity.
+- Not done (yet): ignoring the accelerometer while |a| is far from g
+  (bumps, hard braking). Worth trying on the robot if the angle jumps.
+
+Tests (6, all pass): first sample = accel angles; an accel-only step
+reaches 63% after τ and settles in 5τ; a 0.01 rad/s bias (10x the
+leftover after step 5) settles at b·τ (0.29°) and doesn't grow;
+tipping at 1 rad/s is tracked within 0.1° (accel alone would lag 29°);
+turning at 2 rad/s while leaning 10° keeps roll at 0; roll crossing
+±180° takes the short way. Checked the tests can fail: without the
+gyro term or the Euler coupling, 3 of them fail.
 
 ## Step 7: fault detection
 

@@ -89,8 +89,12 @@ uncommitted changes included) and `deploy.sh` rsyncs it to the board.
 cd ~/Projects/DontFall-M4-ws/DontFall-M4
 # edit app/...
 scripts/build.sh                      # west build in the zephyr container
+scripts/test.sh                       # host tests (ztest on native_sim, twister)
 scripts/deploy.sh <board-ip> --log    # copy, restart M4, print its log
 ```
+
+After pulling a change to the M4 `Dockerfile` (e.g. new twister deps),
+rebuild the container with `scripts/init.sh`.
 
 `deploy.sh` overwrites `/lib/firmware/dontfall-m4.elf` on the board (the file
 the image ships) and restarts remoteproc0; `--log` prints the M4's `printk`

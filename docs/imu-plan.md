@@ -13,8 +13,8 @@ with something you can see working. Update the status as steps land.
 | 4 | Publish the raw `sensor_msgs/Imu` over micro-ROS, plot it on the PC | done |
 | 5 | Gyro bias, and the axes and signs on the bench | done |
 | 6a | Tilt filter (complementary, roll + pitch) as plain C, ztest on the host | done |
-| 6b | Run the filter on the M4, print the angles, check against an inclinometer | todo |
-| 6c | Orientation in `sensor_msgs/Imu` and a tilt topic, RViz | todo |
+| 6b | Run the filter on the M4, print the angles, check against an inclinometer | running, inclinometer check open |
+| 6c | Orientation in `sensor_msgs/Imu`, PlotJuggler and RViz | published, PlotJuggler/RViz check open |
 | 7 | IMU fault detection for the fail-safe | todo |
 | 8 | Release: firmware in the image from bitbake | todo |
 
@@ -356,6 +356,46 @@ turning at 2 rad/s while leaning 10° keeps roll at 0; roll crossing
 ±180° takes the short way. Checked the tests can fail: without the
 gyro term or the Euler coupling, 3 of them fail.
 
+### 6b: filter on the M4
+
+Code (DontFall-M4): `on_drdy()` in `imu.c` runs `tilt_update()` on every
+calibrated sample, dt from the cycle counter; the summary prints roll and
+pitch in degrees. `CONFIG_FPU` with the soft-float ABI (float arguments
+in integer registers, so libmicroros, built without the FPU, links as
+is) and `CONFIG_FPU_SHARING`. `CONFIG_FPU` also turns on float printf
+(~10 KB); `CONFIG_CBPRINTF_FP_SUPPORT=n` turns it off again.
+
+Measured: code 124.1 KB of 128 KB (94.7%, +2.7 KB for the filter, float
+maths and FPU context switching). Still 850 Hz, 0 errors, fetch 53 µs.
+At rest (module on its side): roll -91.7°, pitch 1.5°, matching atan2
+of the raw accel; over 60 s roll moved 0.015°, pitch 0.006°. 5 M4
+restarts in a row came up fine.
+
+Inclinometer comparison: to do (by hand, in PlotJuggler after 6c).
+
+### 6c: orientation on the topic
+
+Code (DontFall-M4): `tilt_quaternion()` in `tilt.c` (roll, pitch, yaw 0
+to x, y, z, w; a test checks it turns the accel reading into gravity
+straight up), `imu_latest()` hands it out with the sample, `uros.c` puts
+it in the Imu message. Orientation covariance: (1°)² = 3e-4 rad² for
+roll and pitch (the accuracy aimed for at rest), 1e6 for yaw (not
+estimated).
+
+Decided: no separate `std_msgs/Float32` tilt topic. PlotJuggler adds
+`orientation/roll` / `pitch` / `yaw` to any quaternion it parses, so the
+Imu topic is enough for plotting, and it saves a publisher and the type
+support code. A tilt topic can come with the balance controller's state.
+
+The orientation is in body axes (after `mount` in `tilt.c`), the rates
+and accelerations in sensor axes, all under `imu_link`. Identical while
+`mount` is identity; once the IMU is mounted, publish all of it in one
+frame (or the TF from body to `imu_link`).
+
+Measured: code 124.4 KB (94.9%). `ros2 topic echo` shows orientation
+x -0.717, w 0.697 (roll -91.7°, pitch 1.2°, as the trace prints) and the
+covariance as set.
+
 ## Step 7: fault detection
 
 The balance controller must know when it can't trust the tilt
@@ -381,5 +421,12 @@ The balance controller must know when it can't trust the tilt
   rate up to that works.
 - Where the IMU sits on the robot, once there is one; close to the pivot
   axis keeps linear acceleration from fooling the accelerometer.
+- Code space (128 KB, ~95% after step 6). Best next room: code in
+  RETRAM (64 KB at address 0, reserved for the M4 by Linux, only the
+  vector table there now): `CONFIG_ROMSTART_REGION_SIZE=64` plus a
+  `zephyr_linker_sources(ROM_START ...)` snippet moving e.g. micro-ROS
+  code there. Moving the SRAM1/SRAM2 split is awkward: the MPU needs
+  power-of-two aligned regions, so only 192 KB / 64 KB works, too little
+  data.
 - Whether INT2 is needed at all (e.g. for FIFO or free-fall). Not wired
   for now.

@@ -168,13 +168,14 @@ traffic on the LAN, so any ROS 2 tool on the PC sees it.
    etc.); drag them into the plot, right-click a plot to split it (e.g.
    accel in one, gyro in the other). The topic is best effort: if nothing
    arrives, check the subscriber's QoS/reliability setting. File -> Save
-   layout keeps the setup for next time.
+   layout keeps the setup for next time. The tilt estimate:
+   PlotJuggler adds `orientation/roll`, `/pitch` and `/yaw` (radians)
+   next to the quaternion; yaw is always 0.
 
 4. **RViz** shows the IMU in 3D with the `Imu` display from
    `rviz_imu_plugin` (Add -> By display type -> rviz_imu_plugin/Imu, topic
    `/dontfall_m4/imu`, Fixed Frame `imu_link`, Reliability Best Effort).
-   Until the tilt filter publishes an orientation (imu-plan step 6) only
-   the acceleration vector is meaningful.
+   The box turns with the tilt estimate (roll and pitch only).
 
 ## Release
 

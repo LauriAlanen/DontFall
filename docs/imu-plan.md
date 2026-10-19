@@ -13,8 +13,8 @@ with something you can see working. Update the status as steps land.
 | 4 | Publish the raw `sensor_msgs/Imu` over micro-ROS, plot it on the PC | done |
 | 5 | Gyro bias, and the axes and signs on the bench | done |
 | 6a | Tilt filter (complementary, roll + pitch) as plain C, ztest on the host | done |
-| 6b | Run the filter on the M4, print the angles, check against an inclinometer | running, inclinometer check open |
-| 6c | Orientation in `sensor_msgs/Imu`, PlotJuggler and RViz | published, PlotJuggler/RViz check open |
+| 6b | Run the filter on the M4, print the angles, check against an inclinometer | done (no inclinometer yet) |
+| 6c | Orientation in `sensor_msgs/Imu`, PlotJuggler and RViz | done |
 | 7 | IMU fault detection for the fail-safe | todo |
 | 8 | Release: firmware in the image from bitbake | todo |
 
@@ -371,7 +371,9 @@ At rest (module on its side): roll -91.7°, pitch 1.5°, matching atan2
 of the raw accel; over 60 s roll moved 0.015°, pitch 0.006°. 5 M4
 restarts in a row came up fine.
 
-Inclinometer comparison: to do (by hand, in PlotJuggler after 6c).
+Inclinometer comparison: not done. Roll and pitch looked right by eye in
+PlotJuggler (6c); compare with a phone inclinometer when the 1° matters
+(e.g. when tuning the balance controller).
 
 ### 6c: orientation on the topic
 

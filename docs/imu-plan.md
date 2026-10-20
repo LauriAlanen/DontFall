@@ -15,7 +15,10 @@ with something you can see working. Update the status as steps land.
 | 6a | Tilt filter (complementary, roll + pitch) as plain C, ztest on the host | done |
 | 6b | Run the filter on the M4, print the angles, check against an inclinometer | done (no inclinometer yet) |
 | 6c | Orientation in `sensor_msgs/Imu`, PlotJuggler and RViz | done |
-| 7 | IMU fault detection for the fail-safe | todo |
+| 7a | Fault detection logic as plain C, ztest on the host | done |
+| 7b | Run it on the M4, WHO_AM_I re-check, pull wires on the bench | todo |
+| 7c | Re-init the chip after a fault that doesn't heal by itself | todo |
+| 7d | Report the IMU health to the A7 | todo |
 | 8 | Release: firmware in the image from bitbake | todo |
 
 ## Wiring
@@ -410,6 +413,59 @@ The balance controller must know when it can't trust the tilt
 - Tests for the detection logic (fail-safe behaviour).
 - Try it on the bench: pull the MISO wire or INT1 wire while running and
   check the flag goes bad, then comes back after a re-init.
+
+Split into four steps, like step 6:
+
+- **7a** the detection logic and tests on the host only; the firmware
+  doesn't use it yet.
+- **7b** feed every fetch into it in `on_drdy()`, re-check WHO_AM_I
+  every second from the summary thread, print fault changes in the
+  trace, restart the tilt filter from the accelerometer after a fault.
+  Bench: pull INT1, then MISO, while running.
+- **7c** a fault that can't heal on its own (chip reset or power loss:
+  its ODR registers go back to power-down, so no data ever comes):
+  write the ODR, full scale and INT1 setup again.
+- **7d** tell the A7. Code space (~95%) decides how: e.g.
+  `diagnostic_msgs` costs type support, the Imu message's covariance
+  (`-1`) or not publishing cost nothing.
+
+What happens on a fault is the controller's job, not the IMU's: it
+disarms and stays disarmed (latched) until told otherwise. The IMU flag
+itself recovers, so a re-init or a wire pushed back in is seen.
+
+### 7a: detection logic and tests
+
+Code (DontFall-M4): `app/src/imu_health.c`/`.h` (not in the firmware
+build until 7b), tests in `tests/imu_health`. Samples go in as the
+micro-units `imu.c` already has; `imu_health_check(now)` gives `IMU_OK`
+or the fault, to ask right before using a sample.
+
+| Fault | When | Catches |
+|-------|------|---------|
+| no data | no good sample for 10 ms (~12 periods) | INT1 off, chip powered down, MISO low (expected: the driver's status read then sees no data ready and skips the callback; check in 7b) |
+| read | 3 failed fetches in a row | SPI errors |
+| stuck | all six values unchanged 20 samples in a row | MISO stuck: every register reads 0x00 or 0xFF |
+| range | any axis at full scale 3 samples in a row | real value beyond the sensor (crash, > 573 dps) |
+| who_am_i | the re-check reads a wrong id | chip swapped, bus garbage that looks alive |
+
+- Every fault latches, also "no data" when samples come back after a gap,
+  and clears after 85 good samples in a row (~100 ms). Startup works the
+  same way, so the first 100 ms are untrusted. who_am_i also needs a good
+  re-check first: random bus data can look like good samples.
+- Stuck is safe from false alarms: at rest the gyro noise (~1.5 mrad/s
+  std) is ~5 LSB of the 500 dps scale, so six axes identical 20 times in
+  a row doesn't happen on a live sensor.
+- Full scale is the largest reading, 32767 LSB times the sensitivity:
+  3.998 g and 573 dps (the 500 dps range really reaches 573).
+- The time check uses an unsigned difference of a wrapping µs clock.
+
+Tests (8, all pass): startup needs 85 samples; one missed pulse is fine,
+just over 10 ms isn't, and it latches; 2 read errors are fine, 3 aren't; stuck
+zeros after 20 repeats, also while they keep coming; gyro and accel
+saturation, a 2-sample spike is fine; who_am_i holds against any number
+of good samples until a good re-check; a fault every 84 samples never
+clears; the clock wrapping. Checked the tests can fail: clearing faults
+after 1 good sample fails 4 tests, ignoring the who_am_i gate fails 1.
 
 ## Step 8: release
 

@@ -2,7 +2,8 @@
 
 Working plan for making room in the M4 firmware before motor control and
 the balance controller go in. Code runs from MCU SRAM1 (128 KB,
-`zephyr,flash`) and is at **124.4 KB (94.9%)** after imu-plan step 6c.
+`zephyr,flash`) and was at **124.4 KB (94.9%)** after imu-plan step 6c,
+**110.6 KB (86.4%)** after steps 1 and 2.
 FOC, the balance controller, a supervisor and more micro-ROS entities
 won't fit. Each step is small and ends with something you can check.
 Update the status and numbers as steps land.
@@ -12,8 +13,8 @@ why `CONFIG_XIP=n` was rejected).
 
 | # | Step | Status |
 |---|------|--------|
-| 1 | Measure: what uses the 124 KB, and the micro-ROS build flags | todo |
-| 2 | A RETRAM code region, one small app file moved there | todo |
+| 1 | Measure: what uses the 124 KB, and the micro-ROS build flags | done |
+| 2 | A RETRAM code region, one small app file moved there | done |
 | 3 | Move micro-ROS code to RETRAM | todo |
 | 4 | Release: firmware from bitbake, budget written down | todo |
 
@@ -25,7 +26,7 @@ carveouts, `m4_rproc` `memory-region` in the kernel's
 
 | M4 address | A7 address | Size | Now |
 |------------|------------|------|-----|
-| 0x00000000 | 0x38000000 | 64 KB RETRAM | vector table only (`CONFIG_ROMSTART_RELOCATION_ROM`) |
+| 0x00000000 | 0x38000000 | 64 KB RETRAM | vector table (1 KB, `CONFIG_ROMSTART_RELOCATION_ROM`), relocated code from 0x400 (step 2) |
 | 0x10000000 | 0x10000000 | 128 KB SRAM1 | code, rodata, resource table |
 | 0x10020000 | 0x10020000 | 128 KB SRAM2 | data, bss, stacks, malloc arena |
 | 0x10040000 | 0x10040000 | 64 KB SRAM3 | rpmsg vrings and buffers |
@@ -58,6 +59,52 @@ Goal: know what to move before moving anything, and catch cheap wins.
 - Done when: a table here with the main users and their size, and a
   decision whether any cheap win is worth taking before step 2.
 
+**Results (done).** `rom_report` in the dev build, sizes in bytes,
+before and after the `-Os` fix below. (`rom_report` also counts the
+664 B vector table in RETRAM; the linker's FLASH line doesn't.)
+
+| Group | -O3 | -Os |
+|-------|----:|----:|
+| micro-ROS libraries (`modules/lib/micro_ros/src`) | 49295 | 43333 |
+| - Micro-XRCE-DDS-Client | 17558 | 14102 |
+| - rcl | 15132 | 13596 |
+| - micro-CDR | 5166 | 5170 |
+| - rclc | 4206 | 3900 |
+| - rmw-microxrcedds | 3069 | 2949 |
+| - rcutils | 2732 | 2302 |
+| - rmw | 1120 | 1052 |
+| micro-ROS generated type support (module's `micro_ros_src/{build,install}`) | 13994 | 12986 |
+| Zephyr: drivers (SPI 2834, UART 2308, sensor 2202, clock 1344, GPIO 1218, EXTI 732) | 12238 | 12238 |
+| Zephyr: kernel | 7350 | 7350 |
+| Zephyr: arch + lib | 4416 | 4416 |
+| HALs (stm32 3926, st 1386, libmetal 826) | 6138 | 6154 |
+| open-amp | 3888 | 3888 |
+| Our app (`app/src`, imu.c biggest at 2351) | 6428 | 6428 |
+| No path: libc/libgcc (soft double ~2.3 K, float trig ~4 K, printf 1.2 K), ISR table 1.2 K | 16006 | 13911 |
+| Hidden (linker padding, small symbols) | 5417 | 4753 |
+| **Total** | **126398** | **116685** |
+
+- **libmicroros was built with `-O3`.** Zephyr passes its `-Os` in
+  `CMAKE_C_FLAGS_INIT`, but `libmicroros.mk` sets
+  `CMAKE_BUILD_TYPE=Release`, whose `-O3 -DNDEBUG` comes later on the
+  command line and wins. Taken: module patch `0003` switches to
+  `MinSizeRel` (`-Os -DNDEBUG`). FLASH 124.4 KB -> 113.3 KB (94.9% ->
+  88.5%), ~9.7 KB saved by `rom_report`. bitbake applies the same
+  patch (step 4 checks).
+  Board check: IMU 850 Hz, fetch max 54 us (same as `-O3`), Imu topic
+  ~49 Hz on the PC, Agent restart reconnects.
+- micro-ROS in total is now ~56 KB (libraries + type support), plus
+  some micro-CDR functions under "no path". RETRAM has ~63 KB free, so
+  it fits in step 3, but with only ~7 KB to spare there.
+- Taken too: the UART driver. Zephyr's board defaults enabled USART3
+  (PB10/PB12) and UART7 (PE7/PE8, Arduino D0/D1) and the M4 set them up
+  at boot, though nothing on the M4 uses a UART (console is the RAM
+  console). Now `status = "disabled"` in the overlay and
+  `CONFIG_SERIAL=n`, so the M4 no longer claims those pins either.
+  FLASH 113.3 KB -> 110.8 KB (86.6%).
+- Assert is already off (`CONFIG_ASSERT` unset); float printf off
+  since imu-plan step 6.
+
 ## Step 2: RETRAM code region
 
 Goal: prove the mechanism with something small before micro-ROS.
@@ -80,6 +127,31 @@ Goal: prove the mechanism with something small before micro-ROS.
   says otherwise, add an MPU region for RETRAM.
 - Done when: the firmware boots from the board with that file in
   RETRAM, and survives 5 M4 restarts in a row.
+
+**Results (done).**
+- Overlay: the SoC's `retram` node (0x0, 64 KB) is replaced by
+  `retram: memory@400` (63 KB, `compatible = "zephyr,memory-region"`,
+  `zephyr,memory-region = "RETRAM"`), which gives the linker a `RETRAM`
+  region. The vector table keeps its own 1 KB `ROMSTART_REGION` at 0x0:
+  `CONFIG_ROMSTART_REGION_ADDRESS`/`_SIZE` are fixed Kconfig defaults
+  (0x0, 1 KB), not taken from the node, so the two regions sit side by
+  side without overlapping.
+- `CONFIG_CODE_DATA_RELOCATION=y` and
+  `zephyr_code_relocate(FILES src/protocol.c LOCATION RETRAM_TEXT NOCOPY)`
+  in `app/CMakeLists.txt`. Linker output: `RETRAM 296 B`, FLASH 232 B
+  less. `readelf -l`: its own `R E` segment at 0x400 with load address =
+  run address (nothing to copy); `zephyr.map` has `protocol_rx` at 0x400.
+- **Calls between RETRAM and SRAM1 go through veneers.** 0x400 and
+  0x1000xxxx are ~256 MB apart, outside a Thumb `BL`'s ±16 MB, so the
+  linker adds a small long-branch stub (`.text.reply.__stub`, 48 B
+  here) per far call target. Automatic and only a few cycles per call,
+  but it counts towards the size of whatever moves in step 3.
+- MPU: no extra region needed. Privileged threads run with the default
+  memory map as background, which allows execution at 0x400.
+- Board: boots, `heartbeat: A7 link up` (PING/PONG runs `protocol_rx`
+  from RETRAM), IMU 850 Hz / fetch 54 us. 5 `stop`/`start` cycles in a
+  row: each comes back with the A7 link up, micro-ROS publishing, IMU
+  at 850 Hz and the ttys still `ttyRPMSG0`/`ttyRPMSG1`.
 
 ## Step 3: micro-ROS to RETRAM
 

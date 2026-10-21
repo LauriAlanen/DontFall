@@ -9,7 +9,7 @@ FOC, the balance controller, a supervisor and more micro-ROS entities
 won't fit. Each step is small and ends with something you can check.
 Update the status and numbers as steps land.
 
-Read `docs/ros-plan.md` step 4 first (why the layout is what it is, and
+Read `docs/archive/ros-plan.md` step 4 first (why the layout is what it is, and
 why `CONFIG_XIP=n` was rejected).
 
 | # | Step | Status |
@@ -212,6 +212,9 @@ sizes as west (RETRAM identical, FLASH 4 B apart). Release image
 deployed (`--image --reboot`): the board's `dontfall-m4.elf` has the
 same md5 as the bitbake ELF, IMU 850 Hz / fetch 54-58 us, Agent session
 up, Imu topic ~49 Hz on the PC.
+
+Current numbers and rules now live in `docs/hardware.md`, "M4 memory
+budget"; this is the snapshot at release.
 
 **Budget** (linker's memory report, `scripts/build.sh` or the bitbake
 `log.do_compile`, at DontFall-M4 `cfcbe20`):

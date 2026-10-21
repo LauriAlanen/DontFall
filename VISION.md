@@ -72,7 +72,7 @@ Principles:
   `ros-core` and the micro-ROS Agent are in the A7 image; the M4
   publishes a test counter over micro-ROS, built by bitbake from pinned
   sources like the rest of the image (see
-  `docs/ros-plan.md`).
+  `docs/archive/ros-plan.md`).
 - **Undecided:** the IMU, encoders/position sensors, the second motor and
   the mechanical build. There is no robot yet: parts are tested one by
   one on the bench (see "Bench first, robot later" below).

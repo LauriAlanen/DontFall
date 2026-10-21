@@ -8,7 +8,7 @@ with a flywheel on top, tilt from the IMU). Each step is small and ends
 with something you can see. Update the status as steps land.
 
 Uses the supervisor from `docs/failsafe-plan.md` (armed or not) and needs
-the room from `docs/m4-memory-plan.md` for the M4 step.
+the room in `docs/hardware.md`, "M4 memory budget", for the M4 step.
 
 | # | Step | Status |
 |---|------|--------|

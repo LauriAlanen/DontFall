@@ -44,10 +44,11 @@ only if it saves the next agent significant work.
   failed**: VS Code's CMake Tools configured `app/` into `build/` with the
   host compiler. `scripts/build.sh -p always` fixes it; point CMake Tools
   elsewhere (`cmake.buildDirectory`) or disable its configure-on-open.
-- **Memory layout / resource table:** read `docs/ros-plan.md` step 4 before
+- **Memory layout / resource table:** read `docs/archive/ros-plan.md` step 4 before
   touching the linker or `zephyr,flash`/`zephyr,sram`. `CONFIG_XIP=n` looks
   simpler but the heap overwrites `.resource_table` (rpmsg fails with -2).
-  libmicroros runs from RETRAM: budget and how in `docs/m4-memory-plan.md`.
+  libmicroros runs from RETRAM: budget in `docs/hardware.md`,
+  "M4 memory budget".
 - **A linker snippet can't move code out of the text section.** ld puts
   an input section into the *first* output section whose pattern
   matches, and Zephyr's `*(.text.*)` comes before every stock

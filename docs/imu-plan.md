@@ -207,7 +207,7 @@ than reading printk lines.
 - Header stamp from the Agent's clock (`rmw_uros_sync_session`), so the
   PC tools see real times.
 - Replaces the hello-world counter (same publisher count). Check RAM and
-  code size against `docs/ros-plan.md` step 4.
+  code size against `docs/archive/ros-plan.md` step 4.
 - Done when: `ros2 topic hz` shows ~50 Hz on the PC and PlotJuggler
   plots the six values live.
 

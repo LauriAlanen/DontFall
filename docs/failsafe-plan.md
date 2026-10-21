@@ -7,8 +7,9 @@ works on the IMU alone, and the motor output is a place holder until
 `docs/foc-plan.md` provides one. Each step is small and ends with
 something you can see working. Update the status as steps land.
 
-Needs room in the firmware first: `docs/m4-memory-plan.md` (a service
-and a subscription add type support and micro-ROS entities).
+Needs room in the firmware first: `docs/hardware.md`, "M4 memory
+budget" (a service and a subscription add type support and micro-ROS
+entities).
 
 | # | Step | Status |
 |---|------|--------|
@@ -77,7 +78,7 @@ States, to start (decide the details in step 1):
   imu-plan step 7d (IMU health to the A7): decide both together, one
   M4 status topic. Options: `diagnostic_msgs/DiagnosticArray` (the
   standard, but strings and arrays: code and RAM), or a small standard
-  type per value. Code space from the memory plan decides.
+  type per value. Code space from the M4 memory budget decides.
 - Done when: pulling the IMU's INT1 wire shows DISARMED with reason
   "imu" on the PC (`ros2 topic echo`).
 

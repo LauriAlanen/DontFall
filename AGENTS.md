@@ -2,7 +2,9 @@
 
 Read `VISION.md` first: project goal, architecture principles, and how to
 pace work (small, digestible steps). Skim `docs/lessons-learned.md` before
-board, Yocto patch or M4 memory work.
+board, Yocto patch or M4 memory work. Before adding M4 code, check the
+M4 memory budget and its rules in `docs/hardware.md` ("M4 memory
+budget"). Finished plans are in `docs/archive/`.
 
 ## Git commits
 

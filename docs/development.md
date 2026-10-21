@@ -152,7 +152,7 @@ traffic on the LAN, so any ROS 2 tool on the PC sees it.
 
 2. **ROS 2 tools on the PC**: `pc/ros.sh` runs them in a Jazzy container
    (`pc/Dockerfile`, built on first use) on the host network; windows open
-   through WSLg. One-time WSL2 network/firewall setup: `docs/ros-plan.md`
+   through WSLg. One-time WSL2 network/firewall setup: `docs/archive/ros-plan.md`
    step 2c.
 
    ```sh

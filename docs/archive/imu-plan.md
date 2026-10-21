@@ -18,8 +18,8 @@ with something you can see working. Update the status as steps land.
 | 7a | Fault detection logic as plain C, ztest on the host | done |
 | 7b | Run it on the M4, WHO_AM_I re-check, pull wires on the bench | done |
 | 7c | Re-init the chip after a fault that doesn't heal by itself | done (software reset; no power pull) |
-| 7d | Report the IMU health to the A7 | todo |
-| 8 | Release: firmware in the image from bitbake | todo |
+| 7d | Report the IMU health to the A7 | moved to `docs/failsafe-plan.md` step 2 |
+| 8 | Release: firmware in the image from bitbake | done (`3377b57`, DontFall-M4 `cfcbe20`) |
 
 ## Wiring
 
@@ -427,7 +427,9 @@ Split into four steps, like step 6:
   write the ODR, full scale and INT1 setup again.
 - **7d** tell the A7. Code space (~95%) decides how: e.g.
   `diagnostic_msgs` costs type support, the Imu message's covariance
-  (`-1`) or not publishing cost nothing.
+  (`-1`) or not publishing cost nothing. Moved to `docs/failsafe-plan.md`
+  step 2: one M4 status topic for the supervisor state and the IMU
+  health.
 
 What happens on a fault is the controller's job, not the IMU's: it
 disarms and stays disarmed (latched) until told otherwise. The IMU flag
@@ -572,18 +574,13 @@ risking the sensor).
   the image's own firmware.
 - Mark the IMU as decided in VISION.md ("Undecided" list).
 
+**Results (done).** Released together with the M4 memory plan's step 4
+(`3377b57`, `SRCREV_dfm4` -> `cfcbe20`, which has all IMU steps up to
+7c): the image's own firmware runs the IMU at 850 Hz, fetch 54-58 us,
+Imu topic ~49 Hz on the PC. VISION.md lists the IMU as decided.
+
 ## Open questions
 
-- Balance loop rate. The IMU runs at 833 Hz nominal (step 3), so any
-  rate up to that works.
-- Where the IMU sits on the robot, once there is one; close to the pivot
-  axis keeps linear acceleration from fooling the accelerometer.
-- Code space (128 KB, ~95% after step 6). Best next room: code in
-  RETRAM (64 KB at address 0, reserved for the M4 by Linux, only the
-  vector table there now): `CONFIG_ROMSTART_REGION_SIZE=64` plus a
-  `zephyr_linker_sources(ROM_START ...)` snippet moving e.g. micro-ROS
-  code there. Moving the SRAM1/SRAM2 split is awkward: the MPU needs
-  power-of-two aligned regions, so only 192 KB / 64 KB works, too little
-  data.
-- Whether INT2 is needed at all (e.g. for FIFO or free-fall). Not wired
-  for now.
+Moved when the plan was archived: the balance loop rate, where the IMU
+sits and INT2 to `docs/balance-plan.md`; code space was solved by the M4
+memory plan (budget in `docs/hardware.md`).

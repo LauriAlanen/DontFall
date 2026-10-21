@@ -73,7 +73,10 @@ Principles:
   publishes a test counter over micro-ROS, built by bitbake from pinned
   sources like the rest of the image (see
   `docs/archive/ros-plan.md`).
-- **Undecided:** the IMU, encoders/position sensors, the second motor and
+- **IMU:** ST LSM6DSOX on an Arduino Modulino Movement, on SPI5 to the
+  M4 at 850 Hz; tilt filter and fault checks run on the M4, published as
+  `sensor_msgs/Imu` (see `docs/archive/imu-plan.md`).
+- **Undecided:** encoders/position sensors, the second motor and
   the mechanical build. There is no robot yet: parts are tested one by
   one on the bench (see "Bench first, robot later" below).
 

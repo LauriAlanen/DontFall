@@ -87,7 +87,7 @@ only if it saves the next agent significant work.
 
 - **Modulino Movement (IMU) is wired for I2C only from the factory.** SPI
   needs board mods (SA0 jumper, CS bridge) and uses SDA/SCL, not the
-  header's SCx/SDx. See `docs/imu-plan.md`, Wiring.
+  header's SCx/SDx. See `docs/archive/imu-plan.md`, Wiring.
 - **Flaky reads that recover after bus activity = missing GND**, not SPI
   settings. Check the ground wire before tuning pins. Bit-banging the same
   pins is a quick way to split hardware from peripheral/driver problems.

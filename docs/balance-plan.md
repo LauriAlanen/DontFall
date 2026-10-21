@@ -133,5 +133,9 @@ before it falls.
   step 5 from the measured time.
 - Kalman filter instead of the complementary filter, if step 4 shows the
   angle estimate is what limits it.
+- Where the IMU sits on the robot, once there is one; close to the pivot
+  axis keeps linear acceleration from fooling the accelerometer.
+- Whether the IMU's INT2 is needed at all (e.g. for FIFO or free-fall).
+  Not wired for now.
 - The two-wheeled robot is a different model (wheel on the ground,
   forward speed from `cmd_vel`). Reuse the same structure later.

@@ -47,6 +47,16 @@ only if it saves the next agent significant work.
 - **Memory layout / resource table:** read `docs/ros-plan.md` step 4 before
   touching the linker or `zephyr,flash`/`zephyr,sram`. `CONFIG_XIP=n` looks
   simpler but the heap overwrites `.resource_table` (rpmsg fails with -2).
+  libmicroros runs from RETRAM: budget and how in `docs/m4-memory-plan.md`.
+- **A linker snippet can't move code out of the text section.** ld puts
+  an input section into the *first* output section whose pattern
+  matches, and Zephyr's `*(.text.*)` comes before every stock
+  `zephyr_linker_sources` location that defines output sections. Use
+  `PRE_TEXT_SECTIONS` (our Zephyr patch 0004); `zephyr_code_relocate`
+  only takes objects built from sources, not a prebuilt `.a`.
+- **CMake `Release` means `-O3`**, and it comes after Zephyr's `-Os` on
+  the command line. External builds (libmicroros) need `MinSizeRel`;
+  check the real flags in the build's `flags.make`.
 - **Restarting the M4 does not reset its peripherals.** GPIO, EXTI, SPI
   and the sensors keep their state (and keep running) while the M4 is
   stopped, so the next boot can find pending interrupts. Symptom: every

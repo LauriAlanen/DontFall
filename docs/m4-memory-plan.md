@@ -17,7 +17,7 @@ why `CONFIG_XIP=n` was rejected).
 | 1 | Measure: what uses the 124 KB, and the micro-ROS build flags | done |
 | 2 | A RETRAM code region, one small app file moved there | done |
 | 3 | Move micro-ROS code to RETRAM | done |
-| 4 | Release: firmware from bitbake, budget written down | todo |
+| 4 | Release: firmware from bitbake, budget written down | done |
 
 ## Where the room is
 
@@ -205,6 +205,32 @@ Goal: prove the mechanism with something small before micro-ROS.
   rule for later steps, e.g. "every plan step that adds M4 code notes
   the new size; stay under 90% of each region".
 - Add a lesson to `docs/lessons-learned.md` if anything here cost time.
+
+**Results (done).** `SRCREV_dfm4` -> `cfcbe20`. bitbake applies all
+seven patches (Zephyr 0001-0004, module 0001-0003) and links the same
+sizes as west (RETRAM identical, FLASH 4 B apart). Release image
+deployed (`--image --reboot`): the board's `dontfall-m4.elf` has the
+same md5 as the bitbake ELF, IMU 850 Hz / fetch 54-58 us, Agent session
+up, Imu topic ~49 Hz on the PC.
+
+**Budget** (linker's memory report, `scripts/build.sh` or the bitbake
+`log.do_compile`, at DontFall-M4 `cfcbe20`):
+
+| Region | Holds | Used | Free |
+|--------|-------|-----:|-----:|
+| SRAM1 (`FLASH`), 128 KB | our code, Zephyr, drivers, libc, all non-micro-ROS rodata | 58.4 KB (45.6%) | 69.6 KB |
+| RETRAM (`RETRAM`), 63 KB | libmicroros code + rodata | 52.8 KB (83.9%) | 10.2 KB |
+| SRAM2 (`RAM`), 128 KB | static data, bss, stacks | 60.8 KB (47.5%) | rest is the malloc arena micro-ROS allocates from |
+
+Rules for later steps:
+- Every plan step that adds M4 code notes the new FLASH and RETRAM
+  sizes in its own plan.
+- Stay under 90% of each region. RETRAM is already at 84%, so a new
+  micro-ROS message type (generated type support lands there) should
+  check it; first relief is moving libmicroros's `.rodata` (4.4 KB)
+  back to SRAM1 in `app/retram.ld`.
+- Our own code goes in SRAM1. Only move something else to RETRAM if it
+  isn't timing critical, and expect a few hundred bytes of veneers.
 
 ## Open questions
 

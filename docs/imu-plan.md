@@ -17,7 +17,7 @@ with something you can see working. Update the status as steps land.
 | 6c | Orientation in `sensor_msgs/Imu`, PlotJuggler and RViz | done |
 | 7a | Fault detection logic as plain C, ztest on the host | done |
 | 7b | Run it on the M4, WHO_AM_I re-check, pull wires on the bench | done |
-| 7c | Re-init the chip after a fault that doesn't heal by itself | todo |
+| 7c | Re-init the chip after a fault that doesn't heal by itself | done (software reset; no power pull) |
 | 7d | Report the IMU health to the A7 | todo |
 | 8 | Release: firmware in the image from bitbake | todo |
 
@@ -521,6 +521,50 @@ also without the suspected SPI fix (STM32H7/MP1 SPI pins floating
 between transfers, AFCNTR / upstream `st,gpio-control`). That fix was
 backported, then dropped again as not needed. If shifted reads ever come
 back on good wiring, that is the next thing to try.
+
+### 7c: re-init after a chip reset
+
+A chip reset or power loss puts the LSM6DSOX's registers back to
+defaults, ODR "power down" among them. It still answers WHO_AM_I right,
+but never makes data again, so "no data" would stay forever.
+
+Code (DontFall-M4, `imu.c`): right after the driver's init and the
+trigger, `imu_init()` reads back the registers the driver set up and
+keeps them (`cfg_regs`: CTRL1_XL..CTRL10_C, FIFO_CTRL4 for FIFO bypass,
+COUNTER_BDR_REG1 for pulsed data ready, INT1_CTRL for data ready on
+INT1, I3C_BUS_AVB). Once a second, after a good WHO_AM_I, the summary
+thread reads them again; if one differs it prints
+`imu: chip setup lost (reg .. .., was ..), writing it again` and writes
+all of them back with raw SPI writes: CTRL3_C (BDU, auto-increment)
+first, the ODRs last, so the chip starts only when fully set up. The
+health checks need nothing new: "no data" clears by itself once samples
+come back.
+
+Decided:
+- Save from the chip rather than write our own values: the register
+  encoding of ODR and full scale stays in the driver, one place. Zephyr
+  3.7 has no API to re-run a driver's init, and the sensor API
+  (`sensor_attr_set`, trigger) can't restore pulsed data ready.
+- Only after a good WHO_AM_I: with MISO off every read is 0x00, which
+  would look like lost setup every second.
+- No host test: the logic is a compare and a write loop, tested on the
+  board instead.
+- Limitation: if the driver's init itself goes wrong (as with the bad
+  SDO wiring in 7b), the saved copy is wrong too and gets restored as
+  is. The health checks still flag the result.
+
+Measured: code 125.7 KB (95.9%, +0.3 KB). Test with a temporary hook
+that set CTRL3_C's software reset bit 10 s after boot (removed):
+
+    TEST: chip SW reset
+    imu: chip setup lost (reg 0x12 0x04, was 0x44), writing it again
+    imu: FAULT no data
+    imu: healthy (was no data)
+
+Back at 850 Hz within ~2 s. Without the hook: 20 M4 restarts and ~40 s
+of running with no false "setup lost". Not tested: a real power loss
+(pulling 3.3 V back-powers the chip through its signal pins; not worth
+risking the sensor).
 
 ## Step 8: release
 

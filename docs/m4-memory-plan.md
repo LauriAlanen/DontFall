@@ -3,7 +3,8 @@
 Working plan for making room in the M4 firmware before motor control and
 the balance controller go in. Code runs from MCU SRAM1 (128 KB,
 `zephyr,flash`) and was at **124.4 KB (94.9%)** after imu-plan step 6c,
-**110.6 KB (86.4%)** after steps 1 and 2.
+**58.4 KB (45.6%)** after step 3 (micro-ROS moved to RETRAM, which is
+at 52.8 of 63 KB, 83.9%).
 FOC, the balance controller, a supervisor and more micro-ROS entities
 won't fit. Each step is small and ends with something you can check.
 Update the status and numbers as steps land.
@@ -15,7 +16,7 @@ why `CONFIG_XIP=n` was rejected).
 |---|------|--------|
 | 1 | Measure: what uses the 124 KB, and the micro-ROS build flags | done |
 | 2 | A RETRAM code region, one small app file moved there | done |
-| 3 | Move micro-ROS code to RETRAM | todo |
+| 3 | Move micro-ROS code to RETRAM | done |
 | 4 | Release: firmware from bitbake, budget written down | todo |
 
 ## Where the room is
@@ -26,8 +27,8 @@ carveouts, `m4_rproc` `memory-region` in the kernel's
 
 | M4 address | A7 address | Size | Now |
 |------------|------------|------|-----|
-| 0x00000000 | 0x38000000 | 64 KB RETRAM | vector table (1 KB, `CONFIG_ROMSTART_RELOCATION_ROM`), relocated code from 0x400 (step 2) |
-| 0x10000000 | 0x10000000 | 128 KB SRAM1 | code, rodata, resource table |
+| 0x00000000 | 0x38000000 | 64 KB RETRAM | vector table (1 KB, `CONFIG_ROMSTART_RELOCATION_ROM`), libmicroros code and rodata from 0x400 (step 3) |
+| 0x10000000 | 0x10000000 | 128 KB SRAM1 | all other code and rodata, resource table |
 | 0x10020000 | 0x10020000 | 128 KB SRAM2 | data, bss, stacks, malloc arena |
 | 0x10040000 | 0x10040000 | 64 KB SRAM3 | rpmsg vrings and buffers |
 
@@ -168,6 +169,32 @@ Goal: prove the mechanism with something small before micro-ROS.
 - If micro-ROS is bigger than RETRAM, move only its biggest parts (the
   XRCE-DDS client and micro-CDR, from the step 1 table).
 - Done when: the numbers are in this file and the checks above pass.
+
+**Results (done).**
+- `zephyr_code_relocate()` can't take the prebuilt `.a` (its script
+  looks for objects built from sources), and no existing snippet
+  location works either: ld puts an input section into the *first*
+  output section whose pattern matches, and Zephyr's text section
+  (`*(.text.*)`) comes before every location that may define output
+  sections. Zephyr patch `0004` adds one, `PRE_TEXT_SECTIONS`, included
+  right before the text section in the Cortex-M linker script.
+  (Rejected: feeding extracted objects to `zephyr_code_relocate()`,
+  indirect CMake plumbing; a custom linker script, region redeclared.)
+- `app/retram.ld`: `*libmicroros.a:*(.text .text.* .rodata .rodata.*)`
+  into `RETRAM`, added with `zephyr_linker_sources(PRE_TEXT_SECTIONS ...)`.
+  Step 2's `protocol.c` relocation and `CONFIG_CODE_DATA_RELOCATION` are
+  gone again; the `retram` DT region stays.
+- Sizes (linker): FLASH 113.2 KB -> 58.4 KB (86.4% -> 45.6%), RETRAM
+  52.8 KB of 63 KB (83.9%): 49.8 KB code, 4.4 KB rodata, 216 B veneers.
+  Nothing from libmicroros is left in SRAM1. Veneers for the calls the
+  other way add 208 B in SRAM1, so the move costs ~0.4 KB in total.
+- Board: IMU 850 Hz, fetch max 54-59 us (unchanged), Imu topic ~49 Hz
+  on the PC, 3 Agent kill/restarts each reconnect (new datawriter), 3
+  M4 restarts each come back with the A7 link, micro-ROS and IMU, ttys
+  unchanged. Host tests pass with the Zephyr patch.
+- Headroom: RETRAM has ~10 KB left for micro-ROS growth (every new
+  message type adds generated type support code there). If it runs
+  out, `.rodata` (4.4 KB) can go back to SRAM1 first.
 
 ## Step 4: release
 

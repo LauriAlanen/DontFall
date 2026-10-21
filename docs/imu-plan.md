@@ -16,7 +16,7 @@ with something you can see working. Update the status as steps land.
 | 6b | Run the filter on the M4, print the angles, check against an inclinometer | done (no inclinometer yet) |
 | 6c | Orientation in `sensor_msgs/Imu`, PlotJuggler and RViz | done |
 | 7a | Fault detection logic as plain C, ztest on the host | done |
-| 7b | Run it on the M4, WHO_AM_I re-check, pull wires on the bench | todo |
+| 7b | Run it on the M4, WHO_AM_I re-check, pull wires on the bench | done |
 | 7c | Re-init the chip after a fault that doesn't heal by itself | todo |
 | 7d | Report the IMU health to the A7 | todo |
 | 8 | Release: firmware in the image from bitbake | todo |
@@ -442,11 +442,12 @@ or the fault, to ask right before using a sample.
 
 | Fault | When | Catches |
 |-------|------|---------|
-| no data | no good sample for 10 ms (~12 periods) | INT1 off, chip powered down, MISO low (expected: the driver's status read then sees no data ready and skips the callback; check in 7b) |
+| no data | no good sample for 10 ms (~12 periods) | INT1 off, chip powered down, MISO low (the driver's status read then sees no data ready and skips the callback; seen in 7b) |
 | read | 3 failed fetches in a row | SPI errors |
 | stuck | all six values unchanged 20 samples in a row | MISO stuck: every register reads 0x00 or 0xFF |
 | range | any axis at full scale 3 samples in a row | real value beyond the sensor (crash, > 573 dps) |
 | who_am_i | the re-check reads a wrong id | chip swapped, bus garbage that looks alive |
+| rate | samples under 500 µs apart, 3 in a row (added in 7b) | the driver looping on garbage, see 7b |
 
 - Every fault latches, also "no data" when samples come back after a gap,
   and clears after 85 good samples in a row (~100 ms). Startup works the
@@ -459,13 +460,67 @@ or the fault, to ask right before using a sample.
   3.998 g and 573 dps (the 500 dps range really reaches 573).
 - The time check uses an unsigned difference of a wrapping µs clock.
 
-Tests (8, all pass): startup needs 85 samples; one missed pulse is fine,
+Tests (8 in 7a, 9 after 7b, all pass): startup needs 85 samples; one missed pulse is fine,
 just over 10 ms isn't, and it latches; 2 read errors are fine, 3 aren't; stuck
 zeros after 20 repeats, also while they keep coming; gyro and accel
 saturation, a 2-sample spike is fine; who_am_i holds against any number
 of good samples until a good re-check; a fault every 84 samples never
 clears; the clock wrapping. Checked the tests can fail: clearing faults
 after 1 good sample fails 4 tests, ignoring the who_am_i gate fails 1.
+
+### 7b: on the M4, bench test
+
+Code (DontFall-M4): `on_drdy()` feeds every fetch (raw values, before
+the bias) into `imu_health` under the sampling lock. While there is a
+fault the sample isn't handed out, the gyro calibration skips it (stuck
+zeros would pass as a perfect calibration) and the tilt filter restarts,
+so it takes the accelerometer's angles once healthy instead of
+integrating garbage. The summary thread re-reads WHO_AM_I once a second
+with a raw SPI read and prints `FAULT <reason>` every second while
+unhealthy, `healthy (was ...)` once on recovery. `imu_latest()` now
+returns the fault (`IMU_OK` or the reason) instead of a bool; the
+micro-ROS publisher skips the message on anything but `IMU_OK`. The µs
+clock comes from `k_uptime_ticks()` (100 µs ticks): the 32-bit cycle
+counter wraps at 2^32 cycles (~20 s), not 2^32 µs. RAM console 1 KB ->
+8 KB (~40 s of summaries), so a bench test can be read back.
+
+Changes to 7a found on the board:
+- **rate** fault: with the 3.3 V wire off the chip ran half powered off
+  its I/O pins, still answered WHO_AM_I right, and the driver read
+  garbage at 15-40 kHz (status always "data ready"). The garbage changed
+  enough to pass as live, so stuck didn't catch it.
+- **no data** is judged from the gap since the last fetch of any kind,
+  not the last good one: a run of saturated or stuck samples kept being
+  relabelled "no data" on the first good sample after it. And range is
+  set after stuck, since a sensor pinned at full scale repeats itself.
+
+Measured: code 125.4 KB (95.7%, +1 KB), RAM 47.6% (+7 KB, the console).
+850 Hz, fetch 54 µs as before. 20 M4 restarts in a row came up healthy;
+~75 WHO_AM_I re-checks in a row read right.
+
+Bench (pull a wire for ~5 s, push it back):
+
+| Pulled | Trace | Back in |
+|--------|-------|---------|
+| INT1 | `FAULT no data`, 0 Hz, WHO_AM_I fine | `healthy (was no data)` within the second |
+| MISO | `WHO_AM_I 0x00`, `FAULT who_am_i`, 0 Hz (status reads 0, no callbacks) | `no data` for a second (the 5 s gap), then `healthy` |
+
+Read errors stayed 0: an SPI master never sees an error from a missing
+wire, it reads whatever is on MISO. Faults show up as values, not errors.
+
+Not seen on the bench: stuck and range (they need MISO pinned at a level
+or a crash). Both are covered by the host tests.
+
+Detour (two days): after the 3.3 V wire came loose, step 7b booted bad
+about one time in four (bits shifted by one: WHO_AM_I 0x6c read as 0x58,
+CTRL3_C 0x44 as 0x08, so the driver's init cleared auto-increment and
+then looped). The cause turned out to be the module wiring: after a
+resolder, SDO was shorted to GND (reads all 0x00). A WHO_AM_I over I2C
+(0x6c at 0x6A) proved the chip alive. With SDO fixed, nothing reproduces,
+also without the suspected SPI fix (STM32H7/MP1 SPI pins floating
+between transfers, AFCNTR / upstream `st,gpio-control`). That fix was
+backported, then dropped again as not needed. If shifted reads ever come
+back on good wiring, that is the next thing to try.
 
 ## Step 8: release
 

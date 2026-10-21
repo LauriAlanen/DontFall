@@ -80,3 +80,13 @@ only if it saves the next agent significant work.
 - **Flaky reads that recover after bus activity = missing GND**, not SPI
   settings. Check the ground wire before tuning pins. Bit-banging the same
   pins is a quick way to split hardware from peripheral/driver problems.
+- **IMU SPI reads wrong after rework (all 0x00, or stable wrong values
+  such as WHO_AM_I 0x50/0x58): check the module first.** Solder on the
+  SA0 jumper tying SDO to GND cost two days of chasing the SPI driver.
+  Before blaming code, measure SDO to GND (must be high) and read
+  WHO_AM_I over I2C (CS to 3V3, I2C5 on CN2 pins 5/3, expect 0x6c at
+  0x6A): 0x6c there means the chip is fine and the SPI wiring isn't.
+- **A half-powered LSM6DSOX (3.3 V wire off) still answers WHO_AM_I**,
+  but the LSM6DSO driver then reads garbage at 15-40 kHz in its coop
+  thread and starves the M4 (A7 link and micro-ROS drop). `imu_health`
+  flags it as `rate`.

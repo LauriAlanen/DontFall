@@ -29,7 +29,7 @@ flowchart TB
             hb["ipc.c + heartbeat.c<br/>PONG, LD7 (to be retired)"]
             ctrl["control.c + supervisor.c<br/>arm/disarm, tilt limit,<br/>IMU faults, cmd_vel timeout"]
             imu["imu.c, prio 7, 850 Hz<br/>tilt.c, imu_health.c"]
-            wdog["wdog.c: WWDG1<br/>(in progress)"]
+            wdog["wdog.c: WWDG1, 100 ms<br/>kicked only while every source checks in"]
             foc["FOC + balance controller"]:::planned
         end
     end
@@ -47,7 +47,7 @@ flowchart TB
     imu -->|"/dontfall_m4/imu data"| uros
     sensor -->|"SPI5 + INT1 (EXTI3)"| imu
     ctrl -.->|setpoint| foc
-    foc <-.->|"PWM, SPI"| motor
+    foc -.->|"PWM; encoder over SPI"| motor
     web -.->|"commands via ROS 2"| agent
 
     classDef planned stroke-dasharray: 5 5

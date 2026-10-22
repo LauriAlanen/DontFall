@@ -5,9 +5,11 @@
 #   pc/ros.sh                    shell with ROS sourced
 #   pc/ros.sh plotjuggler        live plots (Streaming: ROS 2 Topic Subscriber)
 #   pc/ros.sh rviz2              3D view
+#   pc/ros.sh teleop             drive with the keyboard (cmd_vel)
 #   pc/ros.sh ros2 topic hz /dontfall_m4/imu
 #
-# Builds the image (pc/Dockerfile) on first use.
+# Builds the image (pc/Dockerfile) on first use; after changing the
+# Dockerfile, rebuild with: docker build -t dontfall-pc-ros pc
 set -euo pipefail
 
 IMAGE=dontfall-pc-ros
@@ -25,6 +27,7 @@ args=(run --rm --init --network host -e DISPLAY="${DISPLAY:-:0}" -v /tmp/.X11-un
 case "${1:-}" in
     "")          set -- bash ;;
     plotjuggler) shift; set -- ros2 run plotjuggler plotjuggler "$@" ;;
+    teleop)      shift; set -- ros2 run teleop_twist_keyboard teleop_twist_keyboard "$@" ;;
 esac
 
 # --init: ROS tools as PID 1 ignore SIGTERM/Ctrl-C. The ros2 daemon is

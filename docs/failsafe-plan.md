@@ -15,8 +15,8 @@ entities).
 |---|------|--------|
 | 1 | Supervisor state machine as plain C, ztest on the host | done |
 | 2 | Supervisor on the M4, its state on a topic (with imu-plan 7d) | done |
-| 3 | Arm/disarm service from the A7 | done, hand checks pending |
-| 4 | `cmd_vel` subscription and the command timeout | todo |
+| 3 | Arm/disarm service from the A7 | done |
+| 4 | `cmd_vel` subscription and the command timeout | done, PC teleop and network checks pending |
 | 5 | M4 watchdog (WWDG1) and Linux's crash recovery | todo |
 | 6 | Retire the PING/PONG protocol on `/dev/ttyRPMSG0` | todo |
 
@@ -173,7 +173,7 @@ ended up:
 - Checked on the board: `/dontfall_m4/arm` listed, arm with the module
   flat says `armed` and `/diagnostics` shows `armed`, arm again `armed`,
   disarm `disarmed` twice, status `disarmed (request)`.
-- Still to check by hand: arm on its side (`refused: tilt`); tilt past
+- Checked by hand too: arm on its side (`refused: tilt`); tilt past
   25 deg while armed (`disarmed (tilt)`, stays so when put back flat);
   pull INT1 while armed (`disarmed (imu)`, step 2's check).
 
@@ -193,6 +193,26 @@ ended up:
   after the Agent is killed, and after the network cable is pulled,
   while the state stays ARMED.
 - Done when: those cases pass.
+
+Done (DontFall-M4 `uros.c`, `control_command()`, `diag.c`). How it ended
+up:
+
+- `/cmd_vel` (`geometry_msgs/msg/Twist`), best effort. The callback
+  hands linear.x and angular.z to `control_command()`, which stamps them
+  with `uptime_us()` under the supervisor's lock; the supervisor ignores
+  non-finite values and times them out after 0.5 s (step 1).
+- The setpoint in use is reported on `/diagnostics`, supervisor status,
+  values `speed` and `turn` (3 decimals). At 1 Hz it shows the setpoint
+  following and going to zero, not the exact 0.5 s: the host tests cover
+  that.
+- PC: `pc/ros.sh teleop` (teleop_twist_keyboard added to `pc/Dockerfile`).
+- Size: RETRAM +1.8 KB to 79.3% (subscription runtime), SRAM1 +2.6 KB.
+- Checked on the board with `ros2 topic pub` at 10 Hz: ignored while
+  disarmed (0.000); armed it follows (0.300, -0.500); 0.000 after the
+  publisher stops, still armed; 0.000 and still armed after stopping and
+  restarting the Agent while commands were flowing.
+- Still to check: from the PC with teleop (keys move the setpoint, zero
+  after letting go), and pulling the network cable while driving.
 
 ## Step 5: watchdog
 

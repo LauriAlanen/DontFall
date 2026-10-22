@@ -137,15 +137,15 @@ or A7 (Linux).
 ## M4 memory budget
 
 From the linker's memory report (`scripts/build.sh` or the bitbake
-`log.do_compile`), after failsafe plan step 3. How it got here:
+`log.do_compile`), after failsafe plan step 4. How it got here:
 `docs/archive/m4-memory-plan.md`; why the layout is what it is:
 `docs/archive/ros-plan.md` step 4.
 
 | Region | Holds | Used | Free |
 |--------|-------|-----:|-----:|
-| SRAM1 (`FLASH`), 128 KB | our code, Zephyr, drivers, libc, all rodata, micro-ROS message type code | 83.2 KB (65.0%) | 44.8 KB |
-| RETRAM (`RETRAM`), 63 KB | libmicroros runtime code (XRCE client, rcl, rclc, rmw, micro-CDR) | 48.1 KB (76.4%) | 14.9 KB |
-| SRAM2 (`RAM`), 128 KB | static data, bss, stacks | 70.6 KB (55.2%) | rest is the malloc arena micro-ROS allocates from |
+| SRAM1 (`FLASH`), 128 KB | our code, Zephyr, drivers, libc, all rodata, micro-ROS message type code | 85.8 KB (67.1%) | 42.2 KB |
+| RETRAM (`RETRAM`), 63 KB | libmicroros runtime code (XRCE client, rcl, rclc, rmw, micro-CDR) | 50.0 KB (79.3%) | 13.0 KB |
+| SRAM2 (`RAM`), 128 KB | static data, bss, stacks | 71.8 KB (56.1%) | rest is the malloc arena micro-ROS allocates from |
 
 Rules:
 - Every plan step that adds M4 code notes the new FLASH and RETRAM
@@ -153,7 +153,7 @@ Rules:
 - Stay under 90% of each region.
 - What goes where (`app/retram.ld`): RETRAM holds only libmicroros's
   runtime code, which grows only with a new *kind* of entity (the first
-  service added ~7 KB, a first subscription will add some). Its rodata
+  service added ~7 KB, the first subscription ~1.8 KB). Its rodata
   and the generated code of every message type (`*rosidl*` objects) are
   in SRAM1, so a new message type costs SRAM1, not RETRAM.
 - Our own code goes in SRAM1. Only move something else to RETRAM if it

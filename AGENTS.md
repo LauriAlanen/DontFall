@@ -1,10 +1,18 @@
 # Project Rules
 
 Read `VISION.md` first: project goal, architecture principles, and how to
-pace work (small, digestible steps). Skim `docs/lessons-learned.md` before
+pace work (small, digestible steps). `docs/architecture.md` shows what
+runs where and how the parts talk. Skim `docs/lessons-learned.md` before
 board, Yocto patch or M4 memory work. Before adding M4 code, check the
 M4 memory budget and its rules in `docs/hardware.md` ("M4 memory
 budget"). Finished plans are in `docs/archive/`.
+
+## Architecture diagram
+
+- `docs/architecture.md` must match the system. Update it in the same
+  change as anything architectural (list at its end: processes, M4
+  threads, links, micro-ROS entities, who owns what, a planned part
+  becoming real), in whichever repo the change happens.
 
 ## Git commits
 

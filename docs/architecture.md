@@ -1,0 +1,84 @@
+# DontFall architecture
+
+What runs where and how the parts talk, as it is now. The why is in
+`VISION.md`; pins and memory in `docs/hardware.md`. Keep this file current:
+see "Keeping this up to date" at the end.
+
+## The whole system
+
+```
+ PC (WSL2, pc/ros.sh: ROS 2 Jazzy container)
+   ros2 topic/service, teleop_twist_keyboard, PlotJuggler, RViz
+        ^
+        | ROS 2 (DDS) over the LAN
+        v
++------------------------------- STM32MP157C-DK2 ------------------------------+
+|                                                                             |
+|  Cortex-A7, Linux (Yocto df-image-minimal, signed boot)                     |
+|  +--------------------------------+   +----------------------------------+  |
+|  | micro-ROS Agent                |   | dontfall-app (DontFall-app)      |  |
+|  | dontfall-uros-agent.service    |   | dontfall-app.service             |  |
+|  | XRCE-DDS <-> DDS bridge        |   | PING/PONG heartbeat, LD8 blink   |  |
+|  +---------------+----------------+   +----------------+-----------------+  |
+|                  | /dev/ttyRPMSG1                      | /dev/ttyRPMSG0     |
+|                  |                                     |                    |
+|  remoteproc (dontfall-m4.service) loads /lib/firmware/dontfall-m4.elf       |
+|  ================= OpenAMP: RPMsg over shared memory ======================  |
+|                  |                                     |                    |
+|  Cortex-M4, Zephyr (DontFall-M4)                       |                    |
+|  +---------------+----------------+   +----------------+-----------------+  |
+|  | uros.c  (prio 5)               |   | ipc.c + heartbeat.c              |  |
+|  | node dontfall_m4: imu, arm,    |   | answers PING with PONG,          |  |
+|  | cmd_vel, diagnostics           |   | LD7 blink (to be retired)        |  |
+|  +---------------+----------------+   +----------------------------------+  |
+|                  |                                                          |
+|  +---------------v----------------+   +----------------------------------+  |
+|  | control.c + supervisor.c       |<--| imu.c (prio 7, 850 Hz)           |  |
+|  | arm/disarm, tilt limit, IMU    |   | tilt.c filter, imu_health.c      |  |
+|  | faults, cmd_vel timeout        |   +----------------+-----------------+  |
+|  +--------------------------------+                    | SPI5 + INT1 (EXTI3)|
+|  wdog.c: WWDG1, kicked only while every source checks in (in progress)     |
++--------------------------------------------------------+--------------------+
+                                                         |
+                                       LSM6DSOX IMU (Arduino Modulino Movement)
+
+ Planned, not built yet (docs/foc-plan.md, docs/balance-plan.md):
+   M4: FOC for the motors and the balance controller, the AS5048A encoder
+   on SPI, SimpleFOCMini drivers (PWM). A7: web UI, screen, camera.
+```
+
+## The ROS 2 interface of the M4
+
+The node `dontfall_m4`, from `uros.c`. This is the only interface between
+the A7 and the M4's control code.
+
+| Name | Kind, type | QoS | Direction | Purpose |
+|------|------------|-----|-----------|---------|
+| `/dontfall_m4/imu` | publisher, `sensor_msgs/Imu` | best effort, 50 Hz | M4 -> A7 | IMU data and tilt estimate |
+| `/diagnostics` | publisher, `diagnostic_msgs/DiagnosticArray` | reliable, 1 Hz | M4 -> A7 | IMU and supervisor state |
+| `/dontfall_m4/arm` | service, `std_srvs/SetBool` | reliable | A7 -> M4 | arm (true) or disarm (false) |
+| `/cmd_vel` | subscription, `geometry_msgs/Twist` | best effort | A7 -> M4 | speed setpoint, zeroed after a timeout |
+
+## Who owns what
+
+- **M4:** everything timing critical and every safety decision: the IMU,
+  the supervisor (armed or not), the command timeout, the watchdog, and
+  later the motors and balancing. It must stay safe with the A7 dead.
+- **A7:** the micro-ROS Agent, the heartbeat app, and later everything
+  high level. It only sends commands; it never closes a fast loop.
+- **Build host (`DontFall`):** Yocto layers in `meta-df`, the image, the
+  M4 firmware built by bitbake from pinned revisions (`zephyr-m4`
+  multiconfig), build and deploy scripts.
+
+## Keeping this up to date
+
+Update this file in the same change as any architectural change:
+
+- a new or removed process, service, M4 thread or source module with its
+  own job
+- a new or changed link between parts (tty, RPMsg channel, bus, network)
+- a micro-ROS entity added, removed, renamed or with another type or QoS
+- a responsibility moving between the M4, the A7 and the PC
+- a planned part becoming real (move it out of "Planned")
+
+Bug fixes, tuning and changes inside a module don't need an update.

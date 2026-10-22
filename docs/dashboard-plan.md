@@ -118,7 +118,7 @@ In sub-steps:
 | # | Sub-step | Status |
 |---|----------|--------|
 | 4a | Extension in `DontFall-dashboard/dontfall-panels`, status badge (armed / disarmed / no data) | done |
-| 4b | DISARM button in the panel | |
+| 4b | DISARM button in the panel | done |
 | 4c | Tilt gauge | |
 
 Small, one panel, one sitting. This is where the custom "visual app"

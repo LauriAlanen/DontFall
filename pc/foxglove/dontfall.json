@@ -109,6 +109,44 @@
       "diffTopicPath": "",
       "showFullMessageForDiff": false,
       "expansion": "all"
+    },
+    "CallService!arm": {
+      "serviceName": "/dontfall_m4/arm",
+      "requestPayload": "{\"data\": true}",
+      "layout": "vertical",
+      "buttonText": "ARM",
+      "buttonTooltip": "std_srvs/SetBool on /dontfall_m4/arm",
+      "buttonColor": "#4caf50",
+      "editingMode": false
+    },
+    "CallService!disarm": {
+      "serviceName": "/dontfall_m4/arm",
+      "requestPayload": "{\"data\": false}",
+      "layout": "vertical",
+      "buttonText": "DISARM",
+      "buttonTooltip": "std_srvs/SetBool on /dontfall_m4/arm",
+      "buttonColor": "#d32f2f",
+      "editingMode": false
+    },
+    "Teleop!drive": {
+      "topic": "/cmd_vel",
+      "publishRate": 10,
+      "upButton": {
+        "field": "linear-x",
+        "value": 0.2
+      },
+      "downButton": {
+        "field": "linear-x",
+        "value": -0.2
+      },
+      "leftButton": {
+        "field": "angular-z",
+        "value": 0.5
+      },
+      "rightButton": {
+        "field": "angular-z",
+        "value": -0.5
+      }
     }
   },
   "globalVariables": {},
@@ -131,13 +169,27 @@
     },
     "second": {
       "direction": "column",
-      "splitPercentage": 12,
-      "first": "Indicator!armed",
+      "splitPercentage": 22,
+      "first": {
+        "direction": "row",
+        "splitPercentage": 40,
+        "first": "Indicator!armed",
+        "second": {
+          "direction": "row",
+          "first": "CallService!arm",
+          "second": "CallService!disarm"
+        }
+      },
       "second": {
         "direction": "column",
-        "first": "DiagnosticSummary!m4",
-        "second": "RawMessages!diag",
-        "splitPercentage": 45
+        "splitPercentage": 35,
+        "first": "Teleop!drive",
+        "second": {
+          "direction": "column",
+          "first": "DiagnosticSummary!m4",
+          "second": "RawMessages!diag",
+          "splitPercentage": 45
+        }
       }
     }
   }

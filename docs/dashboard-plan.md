@@ -10,7 +10,7 @@ something you can see working. Update the status as steps land.
 |---|------|--------|
 | 1 | Foxglove bridge in the PC container, see the board's topics | done |
 | 2 | A DontFall layout in the repo: plots, diagnostics, raw messages | done |
-| 3 | Control from the dashboard: arm/disarm and drive | |
+| 3 | Control from the dashboard: arm/disarm and drive | done |
 | 4 | First custom panel: robot status and a big DISARM | |
 | 5 | Decide: keep growing panels, or a standalone app | |
 

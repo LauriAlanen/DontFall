@@ -76,6 +76,12 @@ only if it saves the next agent significant work.
   after a list instead of editing it, patch 0004) and check the series
   with both the script (twice) and plain `patch -p1` on a clean tree
   (what the Yocto recipe does).
+- **Zephyr's WWDG1 is broken on the MP1 upstream** (our Zephyr patch
+  0005): the DT clock cell enabled SPI2 instead of WWDG1, and the clock
+  driver couldn't report its rate, so `wdt_install_timeout()` returned
+  -EINVAL. A failed `wdog_start` only shows in trace0 right after boot:
+  test a watchdog with a build that hangs on purpose, never by "it didn't
+  fire".
 - **Restarting the M4 does not reset its peripherals.** GPIO, EXTI, SPI
   and the sensors keep their state (and keep running) while the M4 is
   stopped, so the next boot can find pending interrupts. Symptom: every

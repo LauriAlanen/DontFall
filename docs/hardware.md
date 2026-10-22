@@ -137,15 +137,15 @@ or A7 (Linux).
 ## M4 memory budget
 
 From the linker's memory report (`scripts/build.sh` or the bitbake
-`log.do_compile`), after failsafe plan step 4. How it got here:
+`log.do_compile`), after failsafe plan step 5. How it got here:
 `docs/archive/m4-memory-plan.md`; why the layout is what it is:
 `docs/archive/ros-plan.md` step 4.
 
 | Region | Holds | Used | Free |
 |--------|-------|-----:|-----:|
-| SRAM1 (`FLASH`), 128 KB | our code, Zephyr, drivers, libc, all rodata, micro-ROS message type code | 85.8 KB (67.1%) | 42.2 KB |
+| SRAM1 (`FLASH`), 128 KB | our code, Zephyr, drivers, libc, all rodata, micro-ROS message type code | 87.1 KB (68.1%) | 40.9 KB |
 | RETRAM (`RETRAM`), 63 KB | libmicroros runtime code (XRCE client, rcl, rclc, rmw, micro-CDR) | 50.0 KB (79.3%) | 13.0 KB |
-| SRAM2 (`RAM`), 128 KB | static data, bss, stacks | 71.8 KB (56.1%) | rest is the malloc arena micro-ROS allocates from |
+| SRAM2 (`RAM`), 128 KB | static data, bss, stacks | 72.6 KB (56.7%) | rest is the malloc arena micro-ROS allocates from |
 
 Rules:
 - Every plan step that adds M4 code notes the new FLASH and RETRAM

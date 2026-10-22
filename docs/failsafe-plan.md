@@ -16,8 +16,8 @@ entities).
 | 1 | Supervisor state machine as plain C, ztest on the host | done |
 | 2 | Supervisor on the M4, its state on a topic (with imu-plan 7d) | done |
 | 3 | Arm/disarm service from the A7 | done |
-| 4 | `cmd_vel` subscription and the command timeout | done, PC teleop and network checks pending |
-| 5 | M4 watchdog (WWDG1) and Linux's crash recovery | todo |
+| 4 | `cmd_vel` subscription and the command timeout | done |
+| 5 | M4 watchdog (WWDG1) and Linux's crash recovery | done |
 | 6 | Retire the PING/PONG protocol on `/dev/ttyRPMSG0` | todo |
 
 ## The supervisor
@@ -211,7 +211,7 @@ up:
   disarmed (0.000); armed it follows (0.300, -0.500); 0.000 after the
   publisher stops, still armed; 0.000 and still armed after stopping and
   restarting the Agent while commands were flowing.
-- Still to check: from the PC with teleop (keys move the setpoint, zero
+- Checked from the PC too: teleop (keys move the setpoint, zero
   after letting go), and pulling the network cable while driving.
 
 ## Step 5: watchdog
@@ -237,6 +237,44 @@ watchdog that resets the core if the code stops kicking it.
   M4 restart doesn't reset its peripherals. With motors this matters:
   see `docs/foc-plan.md`, safe outputs.
 - Done when: a hang is recovered without touching the board.
+
+Done (DontFall-M4 `wdog.c`, Zephyr patch 0005). How it ended up:
+
+- Kicked differently than planned above. Not from the IMU sampling path:
+  a lost INT1 stops it while the M4 is fine, and the supervisor already
+  handles that (disarmed, reason `imu`); a reset would only lose the
+  reason. Instead a task monitor: a thread at the lowest application
+  priority kicks every 20 ms, and only if every check-in source checked
+  in since the last kick. The one source now is `control.c`'s 10 ms
+  timer. So it fires when any thread or ISR spins (the kicker starves),
+  when interrupts stay locked or kernel timers stop (no check-in). A
+  future FOC interrupt becomes another source.
+- Timeout 100 ms (WWDG1 counts PCLK1 104.4 MHz / 4096 / 64: 100.4 ms;
+  the most it can do is ~320 ms). The window is open (the driver allows
+  a kick at any time). It keeps counting under a debugger: freezing it
+  needs DBGMCU, which Linux owns.
+- Upstream Zephyr couldn't run WWDG1 on the MP1: its DT clock cell
+  (0x800) was SPI2's enable bit, not WWDG1's (0x10000000), and the clock
+  driver had no rate for it. Zephyr patch 0005 fixes both.
+- Linux side as expected: `m4_rproc` has the "wdg" interrupt (EXTI 68),
+  recovery is enabled by default.
+- Bench, with a temporary build whose main thread spins after 10 s:
+  ~100 ms later `crash detected in m4: type watchdog`, `recovering m4`,
+  the firmware restarts, the IMU calibrates again (850 Hz, 0 errors), the
+  Agent reconnects and `/diagnostics` is back, `disarmed (boot)`: a
+  watchdog reset always comes back disarmed. It repeats every 10 s, as
+  it should with that build.
+- Core dumps: `systemctl start st-m4coredump` (sets remoteproc's
+  coredump to enabled) and ST's udev rule writes one per crash to
+  `/var/crash` (~625 KB, all M4 memory). Left off in the image: a crash
+  loop would fill the rootfs. Turn it on while debugging.
+- Normal build: no watchdog reset over ~2 min of arm/disarm calls, a
+  20 Hz `cmd_vel` stream and an Agent restart.
+- What a watchdog reset resets: it is an M4-only reset, and Linux then
+  stops and restarts the M4 like `remoteproc stop/start`, so peripherals
+  keep their state in between. The IMU comes back fine. For motor PWM
+  this is what `docs/foc-plan.md` step 5 checks with LEDs.
+- Size: SRAM1 +1.3 KB, SRAM2 +0.8 KB (kicker stack), RETRAM unchanged.
 
 ## Step 6: retire PING/PONG
 

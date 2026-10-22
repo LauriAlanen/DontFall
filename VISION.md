@@ -20,7 +20,8 @@ used and to follow industry practice throughout, not hobby shortcuts.
 1. **Stand still.** The robot balances in place without help. This is the
    first major milestone and the hardest part.
 2. **After that, open-ended.** Likely directions, in no fixed order:
-   - drive it remotely from a web page served by the A7
+   - drive it remotely from a dashboard on the PC, over the robot's
+     ROS 2 interface (`docs/dashboard-plan.md`)
    - show eyes and fun animations on the screen (personality, not a
      status display)
    - follow a person it detects with the camera (the long-term headline
@@ -31,7 +32,7 @@ used and to follow industry practice throughout, not hobby shortcuts.
 | Part | Runs on | Responsibility |
 |------|---------|----------------|
 | `DontFall-M4` | Cortex-M4, Zephyr | FOC for both motors, the balance controller, reading the IMU and encoders. Keeps the robot upright on its own. |
-| `DontFall-app` and other A7 software | Cortex-A7, Linux | ROS 2, perception and person-following, web UI, screen, high-level behaviour. |
+| `DontFall-app` and other A7 software | Cortex-A7, Linux | ROS 2, perception and person-following, screen, high-level behaviour. Serves no web pages: the dashboard runs on the PC. |
 | `DontFall` | build host | Yocto integration: layers, image, build and deploy scripts. |
 
 Principles:

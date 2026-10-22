@@ -113,6 +113,14 @@ in `DontFall-dashboard`, with what the stock panels show poorly:
 - micro-ROS link up/down (topic age), LD7/LD8 shown on screen
 - a DISARM button
 
+In sub-steps:
+
+| # | Sub-step | Status |
+|---|----------|--------|
+| 4a | Extension in `DontFall-dashboard/dontfall-panels`, status badge (armed / disarmed / no data) | done |
+| 4b | DISARM button in the panel | |
+| 4c | Tilt gauge | |
+
 Small, one panel, one sitting. This is where the custom "visual app"
 starts, without building windows, connections and plotting from
 scratch.

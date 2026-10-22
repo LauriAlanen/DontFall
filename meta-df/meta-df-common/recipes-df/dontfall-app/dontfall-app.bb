@@ -3,7 +3,8 @@ DESCRIPTION = "DontFall C/C++ application for the A7. Release builds fetch \
 the pinned SRCREV from git; during development conf/dev.conf points \
 EXTERNALSRC at the sibling checkout (~/Projects/DontFall-app) so bitbake \
 and ./deploy.sh build your working tree. The image starts it at boot via \
-dontfall-app.service, which runs it as the A7 <-> M4 heartbeat with blue LD8 as link status."
+dontfall-app.service: the A7's ROS 2 node, with blue LD8 showing whether \
+the M4's /diagnostics arrive."
 LICENSE = "CLOSED"
 
 # Release build input: bump SRCREV to a pushed commit of DontFall-app.
@@ -19,8 +20,20 @@ S = "${WORKDIR}/git"
 # conf/dev.conf), so the same recipe serves dev checkouts and release builds.
 inherit externalsrc cmake systemd
 
-# Host-side tests (ctest + python pty) don't belong in the target build.
+# Host-side tests don't belong in the target build.
 EXTRA_OECMAKE += "-DBUILD_TESTING=OFF"
+
+# A ROS 2 node (rclcpp, diagnostic_msgs from meta-ros). Plain CMake, not
+# ros_ament_cmake: that class installs under /opt/ros. Instead point CMake
+# and ament at the ROS prefix in the sysroots, like the class does.
+# ament's CMake config runs Python at configure time, with its
+# ament_package module from the native ROS prefix.
+ROS_PREFIX = "/opt/ros/jazzy"
+DEPENDS = "rclcpp diagnostic-msgs ament-cmake-native"
+inherit python3native
+export PYTHONPATH = "${STAGING_DIR_NATIVE}${ROS_PREFIX}/lib/${PYTHON_DIR}/site-packages"
+export AMENT_PREFIX_PATH = "${STAGING_DIR_HOST}${ROS_PREFIX};${STAGING_DIR_NATIVE}${ROS_PREFIX}"
+EXTRA_OECMAKE += "-DCMAKE_PREFIX_PATH='${STAGING_DIR_HOST}${ROS_PREFIX};${STAGING_DIR_NATIVE}${ROS_PREFIX}'"
 
 # The unit goes on the rootfs: /usr/local (userfs) is mounted after systemd
 # starts, so a unit installed next to the binary would never be enabled.

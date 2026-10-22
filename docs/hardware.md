@@ -126,8 +126,8 @@ or A7 (Linux).
 
 | Signal | SoC pin | Header pin | Peripheral / AF | Core | Notes |
 |--------|---------|------------|-----------------|------|-------|
-| LD7 orange user LED | PH7 | on-board | GPIO output | M4 | A7 link status: toggles every 500 ms while PINGs from the A7 arrive, off otherwise (Zephyr `led0`) |
-| LD8 blue user LED | PD11 | on-board | GPIO via Linux LED class (`/sys/class/leds/heartbeat`) | A7 | M4 link status: toggles every 1000 ms while PONGs from the M4 arrive, off otherwise; dontfall-app takes it over from the heartbeat trigger |
+| LD7 orange user LED | PH7 | on-board | GPIO output | M4 | Agent link status: toggles every 500 ms while the micro-ROS session with the Agent is up, off otherwise (Zephyr `led0`, `link_led.c`) |
+| LD8 blue user LED | PD11 | on-board | GPIO via Linux LED class (`/sys/class/leds/heartbeat`) | A7 | M4 link status: toggles every 1000 ms while the M4's `/diagnostics` arrive (3 s timeout), off otherwise; dontfall-app takes it over from the heartbeat trigger |
 | IMU SPI clock | PF7 | CN2 23 | SPI5_SCK | M4 | LSM6DSOX on the Modulino Movement, SPI mode 3 (docs/archive/imu-plan.md) |
 | IMU SPI MOSI | PF9 | CN2 19 | SPI5_MOSI | M4 | |
 | IMU SPI MISO | PF8 | CN2 21 | SPI5_MISO | M4 | |
@@ -137,15 +137,15 @@ or A7 (Linux).
 ## M4 memory budget
 
 From the linker's memory report (`scripts/build.sh` or the bitbake
-`log.do_compile`), after failsafe plan step 5. How it got here:
+`log.do_compile`), after failsafe plan step 6. How it got here:
 `docs/archive/m4-memory-plan.md`; why the layout is what it is:
 `docs/archive/ros-plan.md` step 4.
 
 | Region | Holds | Used | Free |
 |--------|-------|-----:|-----:|
-| SRAM1 (`FLASH`), 128 KB | our code, Zephyr, drivers, libc, all rodata, micro-ROS message type code | 87.1 KB (68.1%) | 40.9 KB |
+| SRAM1 (`FLASH`), 128 KB | our code, Zephyr, drivers, libc, all rodata, micro-ROS message type code | 86.5 KB (67.6%) | 41.5 KB |
 | RETRAM (`RETRAM`), 63 KB | libmicroros runtime code (XRCE client, rcl, rclc, rmw, micro-CDR) | 50.0 KB (79.3%) | 13.0 KB |
-| SRAM2 (`RAM`), 128 KB | static data, bss, stacks | 72.6 KB (56.7%) | rest is the malloc arena micro-ROS allocates from |
+| SRAM2 (`RAM`), 128 KB | static data, bss, stacks | 72.5 KB (56.6%) | rest is the malloc arena micro-ROS allocates from |
 
 Rules:
 - Every plan step that adds M4 code notes the new FLASH and RETRAM

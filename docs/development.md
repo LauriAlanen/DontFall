@@ -107,25 +107,25 @@ systemctl restart dontfall-m4                          # reload firmware
 
 ## End-to-end check
 
-`dontfall-app.service` (started at boot) sends a `PING <seq>` heartbeat to
-the M4 every 500 ms over `/dev/ttyRPMSG0`; the M4 answers `PONG <seq>`.
-Each side declares the link lost after 1.5 s of silence:
+Everything between the cores is ROS 2: the M4's micro-ROS node talks to
+the micro-ROS Agent on `/dev/ttyRPMSG0`, and `dontfall-app.service` (the
+A7's ROS 2 node `dontfall_app`) watches the M4's `/diagnostics`:
 
 | LED | Blinks while | Proves |
 |-----|--------------|--------|
-| Orange LD7 (M4, every 500 ms) | the M4 receives PINGs | remoteproc started the M4, rpmsg A7 -> M4 works, the app is alive |
-| Blue LD8 (A7, every 1000 ms) | the A7 receives PONGs | rpmsg M4 -> A7 works, the M4 firmware is responsive |
+| Orange LD7 (M4, every 500 ms) | the M4's micro-ROS session with the Agent is up | remoteproc started the M4, rpmsg works, the Agent answers |
+| Blue LD8 (A7, every 1000 ms) | the M4's `/diagnostics` arrive (3 s timeout) | the whole chain M4 -> Agent -> DDS -> A7 app works |
 
 Both blinking = both cores and the link work. Logs on each side:
 
 ```sh
 journalctl -u dontfall-app         # "M4 link up" / "M4 link lost"
-cat /sys/kernel/debug/remoteproc/remoteproc0/trace0   # "heartbeat: A7 link up/lost"
+cat /sys/kernel/debug/remoteproc/remoteproc0/trace0   # "uros: Agent found/lost"
 ```
 
-`systemctl stop dontfall-app` turns LD7 off within 1.5 s and gives LD8 back
-to the kernel heartbeat trigger. Restarting the M4 is fine: the app reopens
-`/dev/ttyRPMSG0` when it comes back.
+`systemctl stop dontfall-uros-agent` turns LD7 off within ~1 s and LD8
+within 3 s. Restarting the M4 is fine: the Agent follows the tty and both
+come back.
 
 ## Looking at the data on the PC
 
@@ -134,10 +134,10 @@ The M4 publishes over micro-ROS (`/dontfall_m4/imu`, `sensor_msgs/Imu`,
 traffic on the LAN, so any ROS 2 tool on the PC sees it.
 
 1. **Agent on the board**: `dontfall-uros-agent.service` runs it by
-   itself. It is bound to `/dev/ttyRPMSG1`: it starts when the M4's tty
+   itself. It is bound to `/dev/ttyRPMSG0`: it starts when the M4's tty
    appears (boot, `systemctl restart dontfall-m4`, `scripts/deploy.sh`)
    and stops when the M4 stops, so the tty never stays held open (which
-   would bring the next channel back as `ttyRPMSG2`).
+   would bring the next channel back as `ttyRPMSG1`).
 
    ```sh
    systemctl status dontfall-uros-agent
@@ -147,8 +147,8 @@ traffic on the LAN, so any ROS 2 tool on the PC sees it.
    The M4 log shows `uros: publishing /dontfall_m4/imu` once the gyro is
    calibrated (keep the module still for ~1 s after the M4 starts).
    Running the Agent by hand (e.g. with `-v6` for debugging): stop the
-   service first, write once (`echo > /dev/ttyRPMSG1`), then
-   `micro-ros-agent serial --dev /dev/ttyRPMSG1`.
+   service first, write once (`echo > /dev/ttyRPMSG0`), then
+   `micro-ros-agent serial --dev /dev/ttyRPMSG0`.
 
 2. **ROS 2 tools on the PC**: `pc/ros.sh` runs them in a Jazzy container
    (`pc/Dockerfile`, built on first use) on the host network; windows open
@@ -231,7 +231,6 @@ they still apply after an upgrade.
 |---------|-------|
 | No `/dev/ttyRPMSG0` | `cat /sys/class/remoteproc/remoteproc0/state` (should be `running`), `dmesg \| grep -i rpmsg` (expect `creating channel rpmsg-tty`), M4 log in `trace0` |
 | M4 `running` but empty `trace0` and no channel | Zephyr stuck before `main()` - make sure `patches/zephyr` were applied (`git -C ~/Projects/DontFall-M4-ws/zephyr status`) |
-| Replies echo back endlessly with `cat`/`echo` | tty echo is on: `stty -F /dev/ttyRPMSG0 raw -echo` (the app does this itself) |
 | bitbake fetch of DontFall-app/-M4 fails with `Permission denied (publickey)` | ssh-agent not running/unlocked on the host: `eval "$(ssh-agent -s)" && ssh-add` |
 | bitbake fetch fails with `Host key verification failed` | github.com missing from `~/.ssh/known_hosts` (mounted into the container): `ssh-keyscan github.com >> ~/.ssh/known_hosts` |
 | `/usr/local/bin/dontfall-app: not found` after boot | `/usr/local` (userfs) not mounted: `systemctl status mount-partitions` |

@@ -43,7 +43,7 @@ Workflow overview: `docs/development.md`. Sibling repos:
 - Parse check: `./build.sh bitbake -p </dev/null`
 - M4 firmware via Yocto: `./build.sh bitbake mc:zephyr-m4:dontfall-m4 </dev/null`
 - Full image: `./build.sh </dev/null` (= `bitbake df-image-minimal`)
-- App host build: `cd ../DontFall-app && cmake -B build && cmake --build build` (no tests yet)
+- App build (a ROS 2 node, needs the Yocto sysroot): `./build.sh bitbake dontfall-app </dev/null` (dev.conf builds the sibling checkout); no tests yet
 - M4 dev build: `../DontFall-M4-ws/DontFall-M4/scripts/build.sh </dev/null`
 - M4 host tests (ztest/twister, native_sim): `../DontFall-M4-ws/DontFall-M4/scripts/test.sh </dev/null`
 - Zephyr pin check: `../DontFall-M4-ws/DontFall-M4/scripts/check-zephyr-pin.sh`

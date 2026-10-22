@@ -1,5 +1,5 @@
 SUMMARY = "micro-ROS Agent service for the DontFall M4"
-DESCRIPTION = "Runs the micro-ROS Agent on /dev/ttyRPMSG1 whenever the M4's \
+DESCRIPTION = "Runs the micro-ROS Agent on /dev/ttyRPMSG0 whenever the M4's \
 rpmsg tty exists, so the M4's micro-ROS node shows up on the ROS 2 graph \
 without starting the Agent by hand."
 LICENSE = "CLOSED"

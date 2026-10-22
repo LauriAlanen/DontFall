@@ -1,11 +1,12 @@
 [Unit]
-Description=DontFall A7 application (A7 <-> M4 heartbeat, LD8 = link status)
-Wants=dev-ttyRPMSG0.device
-After=dontfall-m4.service dev-ttyRPMSG0.device
+Description=DontFall A7 application (ROS 2 node dontfall_app, LD8 = M4 link status)
 RequiresMountsFor=/usr/local
 
 [Service]
-ExecStart=/usr/local/bin/dontfall-app --led /sys/class/leds/heartbeat
+# ROS 2 environment: library path and the ament index rclcpp loads the
+# middleware from. No ROS log files: the output already goes to journald,
+# and rclcpp's file logger needs a home directory a service doesn't have.
+ExecStart=/bin/sh -c '. /opt/ros/jazzy/setup.sh && exec /usr/local/bin/dontfall-app --led /sys/class/leds/heartbeat --ros-args --disable-external-lib-logs'
 Restart=on-failure
 
 [Install]

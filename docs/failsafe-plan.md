@@ -18,7 +18,7 @@ entities).
 | 3 | Arm/disarm service from the A7 | done |
 | 4 | `cmd_vel` subscription and the command timeout | done |
 | 5 | M4 watchdog (WWDG1) and Linux's crash recovery | done |
-| 6 | Retire the PING/PONG protocol on `/dev/ttyRPMSG0` | todo |
+| 6 | Retire the PING/PONG protocol on `/dev/ttyRPMSG0` | done |
 
 ## The supervisor
 
@@ -288,6 +288,27 @@ other is alive.
   from `uros.c`; LD8: an A7 app that sees the M4 status topic), and
   what DontFall-app becomes: probably the A7's ROS 2 node.
 - Change both repos and the image in one release.
+
+Done (DontFall-M4, DontFall-app, the image). How it ended up:
+
+- M4: `protocol.c` and the first channel are gone; micro-ROS is the only
+  rpmsg channel, so it is now `/dev/ttyRPMSG0` (the Agent unit moved
+  with it). `heartbeat.c` became `link_led.c`: LD7 blinks while the
+  Agent session is up (set by `uros.c`, which already pings the Agent
+  every second).
+- DontFall-app is now the A7's ROS 2 node `dontfall_app` (rclcpp): it
+  subscribes to `/diagnostics` and LD8 blinks while the M4's statuses
+  arrive (3 s timeout, `m4_link.cpp`, no I/O like the old heartbeat
+  logic). LD8 so checks the whole chain M4 -> rpmsg -> Agent -> DDS ->
+  A7 app.
+- Building it in Yocto and running it as a service needed two fixes,
+  both in `docs/lessons-learned.md`: the recipe sets up the ROS prefix
+  for plain CMake, and the service disables rclcpp's file logger.
+- M4 size: SRAM1 -0.7 KB.
+- Checked on the board: one tty (`ttyRPMSG0`), both nodes on the graph,
+  LD8 blinking; stopping the Agent: app `M4 link lost`, LD8 off; starting
+  it: link up again; `systemctl restart dontfall-m4`: tty back as
+  `ttyRPMSG0`, Agent follows, app lost then up.
 
 ## Open questions
 

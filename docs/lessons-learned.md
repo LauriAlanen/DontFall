@@ -68,6 +68,16 @@ only if it saves the next agent significant work.
   configured_colcon.meta` there (keep `micro_ros_dev/`) and run
   `scripts/build.sh -p always` (~minutes). Bitbake builds are clean, so
   only the dev build is affected.
+- **A ROS 2 C++ program as a system service crashes in `rclcpp::init`**
+  (`Failed to get logging directory`): rclcpp's spdlog file logger wants
+  `~/.ros/log` and a service has no `HOME`. `dontfall-app.service` runs
+  it with `--ros-args --disable-external-lib-logs` (journald has the
+  output anyway).
+- **Building against rclcpp with plain CMake in Yocto** (`dontfall-app.bb`,
+  not `ros_ament_cmake`, which would install under `/opt/ros`): needs
+  `ament-cmake-native` in DEPENDS, `python3native`, and `PYTHONPATH`,
+  `AMENT_PREFIX_PATH` and `CMAKE_PREFIX_PATH` pointing at the ROS prefix
+  in the sysroots, like the class does.
 - **A new module patch must not touch lines another patch uses.**
   `scripts/apply-patches.sh` decides "already applied" per patch with
   `git apply --reverse --check`; if a later patch edits a context line
@@ -89,17 +99,17 @@ only if it saves the next agent significant work.
   Test with a few `stop`/`start` cycles, and find the hang with
   temporary `SYS_INIT` printk markers at each init level.
 - **The rpmsg tty number can change.** If something still holds
-  `/dev/ttyRPMSG1` open when the M4 restarts (e.g. the Agent), the new
-  channel comes back as `ttyRPMSG2`, and the number can stay leaked until
+  `/dev/ttyRPMSG0` open when the M4 restarts (e.g. the Agent), the new
+  channel comes back as `ttyRPMSG1`, and the number can stay leaked until
   the board reboots. `dontfall-uros-agent.service` is bound to the tty
   device so this doesn't happen; a hand-started Agent must be stopped
   before restarting the M4.
 - **micro-ROS client does nothing until Linux writes first** on
-  `/dev/ttyRPMSG1` (`printf '\n' > /dev/ttyRPMSG1` before the Agent).
-- **Right after an M4 restart, `/dev/ttyRPMSG1` doesn't exist yet.** A
+  `/dev/ttyRPMSG0` (`printf '\n' > /dev/ttyRPMSG0` before the Agent).
+- **Right after an M4 restart, `/dev/ttyRPMSG0` doesn't exist yet.** A
   `printf` to it then creates a regular file, the Agent fails with
   `get termios attributes error | errno: 25`, and the M4 got no rpmsg
-  channels. Wait for `[ -c /dev/ttyRPMSG1 ]`; `rm` a stale regular file
+  channels. Wait for `[ -c /dev/ttyRPMSG0 ]`; `rm` a stale regular file
   and restart the M4.
 
 ## Hardware

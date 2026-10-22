@@ -48,5 +48,5 @@ IMAGE_INSTALL += "dontfall-app systemd-mount-partitions"
 
 # ROS core, demo nodes, and micro-ROS Agent (bridges M4 over RPMsg to ROS 2)
 IMAGE_INSTALL += "ros-core demo-nodes-cpp micro-ros-agent"
-# ... started whenever the M4's micro-ROS tty (/dev/ttyRPMSG1) exists
+# ... started whenever the M4's micro-ROS tty (/dev/ttyRPMSG0) exists
 IMAGE_INSTALL += "dontfall-uros-agent"

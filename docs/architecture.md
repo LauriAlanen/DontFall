@@ -19,14 +19,14 @@ flowchart TB
     subgraph BOARD["STM32MP157C-DK2"]
         subgraph A7["Cortex-A7, Linux (Yocto df-image-minimal, signed boot)"]
             agent["micro-ROS Agent<br/>dontfall-uros-agent.service<br/>XRCE-DDS to DDS bridge"]
-            app["dontfall-app<br/>dontfall-app.service<br/>PING/PONG heartbeat, LD8"]
+            app["dontfall-app, node dontfall_app<br/>dontfall-app.service<br/>watches /diagnostics, LD8"]
             rproc["remoteproc<br/>dontfall-m4.service<br/>loads dontfall-m4.elf"]
             web["web UI, screen, camera"]:::planned
         end
 
         subgraph M4["Cortex-M4, Zephyr (DontFall-M4)"]
             uros["uros.c, prio 5<br/>node dontfall_m4"]
-            hb["ipc.c + heartbeat.c<br/>PONG, LD7 (to be retired)"]
+            link["ipc.c, link_led.c<br/>rpmsg-tty, LD7 = Agent session"]
             ctrl["control.c + supervisor.c<br/>arm/disarm, tilt limit,<br/>IMU faults, cmd_vel timeout"]
             imu["imu.c, prio 7, 850 Hz<br/>tilt.c, imu_health.c"]
             wdog["wdog.c: WWDG1, 100 ms<br/>kicked only while every source checks in"]
@@ -38,8 +38,9 @@ flowchart TB
     motor["SimpleFOCMini + gimbal motor<br/>AS5048A encoder"]:::planned
 
     tools <-->|"ROS 2 (DDS), LAN"| agent
-    agent <-->|"/dev/ttyRPMSG1, RPMsg"| uros
-    app <-->|"/dev/ttyRPMSG0, RPMsg"| hb
+    agent <-->|"/dev/ttyRPMSG0, RPMsg"| link
+    link <--> uros
+    app <-->|"/diagnostics, DDS"| agent
     rproc -.->|loads and restarts| M4
     uros -->|"arm, cmd_vel"| ctrl
     ctrl -->|"state for /diagnostics"| uros
@@ -70,7 +71,7 @@ the A7 and the M4's control code.
 - **M4:** everything timing critical and every safety decision: the IMU,
   the supervisor (armed or not), the command timeout, the watchdog, and
   later the motors and balancing. It must stay safe with the A7 dead.
-- **A7:** the micro-ROS Agent, the heartbeat app, and later everything
+- **A7:** the micro-ROS Agent, the app (ROS 2 node `dontfall_app`), and later everything
   high level. It only sends commands; it never closes a fast loop.
 - **Build host (`DontFall`):** Yocto layers in `meta-df`, the image, the
   M4 firmware built by bitbake from pinned revisions (`zephyr-m4`

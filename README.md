@@ -5,7 +5,7 @@ managed with the `repo` tool (`default.xml`).
 
 The image ships the A7 application ([DontFall-app](https://github.com/LauriAlanen/DontFall-app))
 and the Zephyr Cortex-M4 firmware ([DontFall-M4](https://github.com/LauriAlanen/DontFall-M4)),
-which talk over OpenAMP (`/dev/ttyRPMSG0`).
+which talk ROS 2 over OpenAMP (micro-ROS on `/dev/ttyRPMSG0`).
 
 **Daily development and release flow: [docs/development.md](docs/development.md).**
 

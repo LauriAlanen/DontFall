@@ -14,8 +14,8 @@ entities).
 | # | Step | Status |
 |---|------|--------|
 | 1 | Supervisor state machine as plain C, ztest on the host | done |
-| 2 | Supervisor on the M4, its state on a topic (with imu-plan 7d) | done, INT1 check pending |
-| 3 | Arm/disarm service from the A7 | todo |
+| 2 | Supervisor on the M4, its state on a topic (with imu-plan 7d) | done |
+| 3 | Arm/disarm service from the A7 | done, hand checks pending |
 | 4 | `cmd_vel` subscription and the command timeout | todo |
 | 5 | M4 watchdog (WWDG1) and Linux's crash recovery | todo |
 | 6 | Retire the PING/PONG protocol on `/dev/ttyRPMSG0` | todo |
@@ -133,8 +133,9 @@ Done (DontFall-M4: `control.c`, `diag.c`, `uptime_us.h`). How it ended up:
   publisher's buffers). Step 3 must free RETRAM first (`docs/hardware.md`).
 - Checked on the board: `/diagnostics` shows `imu: ok` and `supervisor:
   disarmed (boot)`, IMU still 850 Hz with 0 errors. Arming only comes in
-  step 3, so the INT1 check here is the IMU entry going to ERROR; the
-  supervisor's disarm on it is checked in step 3.
+  step 3, so the INT1 check here is the IMU entry going to ERROR (done,
+  it goes to `no data` and back to `ok`); the supervisor's disarm on it
+  is checked in step 3.
 
 ## Step 3: arm and disarm
 
@@ -150,6 +151,31 @@ Done (DontFall-M4: `control.c`, `diag.c`, `uptime_us.h`). How it ended up:
   side (refused, "tilt"). Tilt it past the limit while armed: DISARMED,
   stays so when put back flat.
 - Done when: those three cases behave as described.
+
+Done (DontFall-M4 `uros.c`, `control_arm()`/`control_disarm()`). How it
+ended up:
+
+- The service doesn't post a request for the sampling path, as planned
+  above: `control_arm()` takes the lock the sampling path and the
+  no-sample timer already use and runs `supervisor_arm()` against the
+  latest sample right away. The supervisor still has one consistent
+  state, and the response can say why arming was refused without a
+  round trip between threads. A sample older than the IMU's no-data
+  timeout counts as "IMU not ok".
+- Responses: `armed`, `disarmed`, `refused: imu`, `refused: tilt`.
+  Refusals are also printed in the trace.
+- `std_srvs` wasn't built into libmicroros (upstream ignores it): module
+  patch 0004.
+- Memory: RETRAM went to 89.9% with the service code (~7 KB of rcl/rmw/
+  XRCE service support), even after moving libmicroros's rodata out. Now
+  the generated message type code is in SRAM1 too (`app/retram.ld`):
+  RETRAM 76.4%, SRAM1 65.0%, SRAM2 55.2% (`docs/hardware.md`).
+- Checked on the board: `/dontfall_m4/arm` listed, arm with the module
+  flat says `armed` and `/diagnostics` shows `armed`, arm again `armed`,
+  disarm `disarmed` twice, status `disarmed (request)`.
+- Still to check by hand: arm on its side (`refused: tilt`); tilt past
+  25 deg while armed (`disarmed (tilt)`, stays so when put back flat);
+  pull INT1 while armed (`disarmed (imu)`, step 2's check).
 
 ## Step 4: `cmd_vel` and the timeout
 

@@ -137,23 +137,25 @@ or A7 (Linux).
 ## M4 memory budget
 
 From the linker's memory report (`scripts/build.sh` or the bitbake
-`log.do_compile`), after failsafe plan step 2. How it got here:
+`log.do_compile`), after failsafe plan step 3. How it got here:
 `docs/archive/m4-memory-plan.md`; why the layout is what it is:
 `docs/archive/ros-plan.md` step 4.
 
 | Region | Holds | Used | Free |
 |--------|-------|-----:|-----:|
-| SRAM1 (`FLASH`), 128 KB | our code, Zephyr, drivers, libc, all non-micro-ROS rodata | 63.7 KB (49.7%) | 64.3 KB |
-| RETRAM (`RETRAM`), 63 KB | libmicroros code + rodata | 56.2 KB (89.2%) | 6.8 KB |
-| SRAM2 (`RAM`), 128 KB | static data, bss, stacks | 65.6 KB (51.3%) | rest is the malloc arena micro-ROS allocates from |
+| SRAM1 (`FLASH`), 128 KB | our code, Zephyr, drivers, libc, all rodata, micro-ROS message type code | 83.2 KB (65.0%) | 44.8 KB |
+| RETRAM (`RETRAM`), 63 KB | libmicroros runtime code (XRCE client, rcl, rclc, rmw, micro-CDR) | 48.1 KB (76.4%) | 14.9 KB |
+| SRAM2 (`RAM`), 128 KB | static data, bss, stacks | 70.6 KB (55.2%) | rest is the malloc arena micro-ROS allocates from |
 
 Rules:
 - Every plan step that adds M4 code notes the new FLASH and RETRAM
   sizes in its own plan, and updates this table when it lands.
-- Stay under 90% of each region. RETRAM is already at 89%, so a new
-  micro-ROS message type (generated type support lands there) should
-  check it; first relief is moving libmicroros's `.rodata` (4.4 KB)
-  back to SRAM1 in `app/retram.ld`.
+- Stay under 90% of each region.
+- What goes where (`app/retram.ld`): RETRAM holds only libmicroros's
+  runtime code, which grows only with a new *kind* of entity (the first
+  service added ~7 KB, a first subscription will add some). Its rodata
+  and the generated code of every message type (`*rosidl*` objects) are
+  in SRAM1, so a new message type costs SRAM1, not RETRAM.
 - Our own code goes in SRAM1. Only move something else to RETRAM if it
   isn't timing critical, and expect a few hundred bytes of veneers.
 - If even this isn't enough later: fewer micro-ROS entities, a smaller

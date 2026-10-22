@@ -68,6 +68,14 @@ only if it saves the next agent significant work.
   configured_colcon.meta` there (keep `micro_ros_dev/`) and run
   `scripts/build.sh -p always` (~minutes). Bitbake builds are clean, so
   only the dev build is affected.
+- **A new module patch must not touch lines another patch uses.**
+  `scripts/apply-patches.sh` decides "already applied" per patch with
+  `git apply --reverse --check`; if a later patch edits a context line
+  of an earlier one, the earlier one looks unapplied and the script
+  fails re-applying it. Put the change elsewhere (e.g. `filter-out`
+  after a list instead of editing it, patch 0004) and check the series
+  with both the script (twice) and plain `patch -p1` on a clean tree
+  (what the Yocto recipe does).
 - **Restarting the M4 does not reset its peripherals.** GPIO, EXTI, SPI
   and the sensors keep their state (and keep running) while the M4 is
   stopped, so the next boot can find pending interrupts. Symptom: every

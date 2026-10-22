@@ -6,6 +6,8 @@
 #   pc/ros.sh plotjuggler        live plots (Streaming: ROS 2 Topic Subscriber)
 #   pc/ros.sh rviz2              3D view
 #   pc/ros.sh teleop             drive with the keyboard (cmd_vel)
+#   pc/ros.sh bridge             foxglove_bridge on ws://localhost:8765 for
+#                                Foxglove/Lichtblick (docs/dashboard-plan.md)
 #   pc/ros.sh ros2 topic hz /dontfall_m4/imu
 #
 # Builds the image (pc/Dockerfile) on first use; after changing the
@@ -28,6 +30,7 @@ case "${1:-}" in
     "")          set -- bash ;;
     plotjuggler) shift; set -- ros2 run plotjuggler plotjuggler "$@" ;;
     teleop)      shift; set -- ros2 run teleop_twist_keyboard teleop_twist_keyboard "$@" ;;
+    bridge)      shift; set -- ros2 launch foxglove_bridge foxglove_bridge_launch.xml "$@" ;;
 esac
 
 # --init: ROS tools as PID 1 ignore SIGTERM/Ctrl-C. The ros2 daemon is

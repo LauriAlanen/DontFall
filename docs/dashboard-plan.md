@@ -8,7 +8,7 @@ something you can see working. Update the status as steps land.
 
 | # | Step | Status |
 |---|------|--------|
-| 1 | Foxglove bridge in the PC container, see the board's topics | |
+| 1 | Foxglove bridge in the PC container, see the board's topics | done |
 | 2 | A DontFall layout in the repo: plots, diagnostics, raw messages | |
 | 3 | Control from the dashboard: arm/disarm and drive | |
 | 4 | First custom panel: robot status and a big DISARM | |

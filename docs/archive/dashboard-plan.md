@@ -1,10 +1,10 @@
 # PC dashboard plan
 
-Working plan for a visual app on the PC to watch and control the robot:
-live plots, state, diagnostics, arm/disarm and driving. The board serves
-no web pages; it only offers its interface, and everything visual runs
-on the PC on the same network. Each step is small and ends with
-something you can see working. Update the status as steps land.
+Finished plan (all steps done) for a visual app on the PC to watch and
+control the robot: live plots, state, diagnostics, arm/disarm and
+driving. The board serves no web pages; it only offers its interface,
+and everything visual runs on the PC on the same network. The result
+lives in `DontFall-dashboard`.
 
 | # | Step | Status |
 |---|------|--------|
@@ -12,7 +12,7 @@ something you can see working. Update the status as steps land.
 | 2 | A DontFall layout in the repo: plots, diagnostics, raw messages | done |
 | 3 | Control from the dashboard: arm/disarm and drive | done |
 | 4 | First custom panel: robot status and a big DISARM | done |
-| 5 | Decide: keep growing panels, or a standalone app | |
+| 5 | Decide: keep growing panels, or a standalone app | done: Foxglove |
 
 ## The idea, refined
 
@@ -137,6 +137,14 @@ Decide once the panels exist and it's clear what's missing. Options:
 
 My expectation: Foxglove + panels carries far, and the bridge from
 step 1 serves any of the three, so nothing is lost by starting there.
+
+**Decided (2026-10-22): stay with Foxglove and custom panels.** The
+stock and custom panels did everything steps 1-4 needed, with plots,
+recording and replay for free. Revisit when a panel can't do what's
+needed (own windows or look, e.g. for the camera or the robot's
+personality). Panel code is plain React and any app would use the same
+bridge, so the move would keep the drawing code. New panels come with
+the plans that need them (motor speed, balance controller output).
 
 ## Later, needs board or M4 work
 

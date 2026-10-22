@@ -8,7 +8,7 @@ a running board, and how a release image is produced.
 | [DontFall](https://github.com/LauriAlanen/DontFall) | build host | Yocto/OpenSTLinux integration: `repo` manifest, `meta-df` layers, build + deploy scripts, these docs |
 | [DontFall-app](https://github.com/LauriAlanen/DontFall-app) | Cortex-A7, Linux | The application (`/usr/local/bin/dontfall-app`) |
 | [DontFall-M4](https://github.com/LauriAlanen/DontFall-M4) | Cortex-M4, Zephyr | Coprocessor firmware (`/lib/firmware/dontfall-m4.elf`) |
-| [DontFall-dashboard](https://github.com/LauriAlanen/DontFall-dashboard) | PC | Foxglove layouts and panels (`docs/dashboard-plan.md`) |
+| [DontFall-dashboard](https://github.com/LauriAlanen/DontFall-dashboard) | PC | Foxglove layouts and panels (`docs/archive/dashboard-plan.md`) |
 
 The A7 and M4 talk over OpenAMP: the M4 firmware announces an `rpmsg-tty`
 channel, which Linux exposes as `/dev/ttyRPMSG0`.

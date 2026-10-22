@@ -7,7 +7,7 @@
 #   pc/ros.sh rviz2              3D view
 #   pc/ros.sh teleop             drive with the keyboard (cmd_vel)
 #   pc/ros.sh bridge             foxglove_bridge on ws://localhost:8765 for
-#                                Foxglove/Lichtblick (docs/dashboard-plan.md)
+#                                Foxglove/Lichtblick (docs/archive/dashboard-plan.md)
 #   pc/ros.sh ros2 topic hz /dontfall_m4/imu
 #
 # Builds the image (pc/Dockerfile) on first use; after changing the

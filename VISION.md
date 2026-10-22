@@ -21,7 +21,7 @@ used and to follow industry practice throughout, not hobby shortcuts.
    first major milestone and the hardest part.
 2. **After that, open-ended.** Likely directions, in no fixed order:
    - drive it remotely from a dashboard on the PC, over the robot's
-     ROS 2 interface (`docs/dashboard-plan.md`)
+     ROS 2 interface (`docs/archive/dashboard-plan.md`)
    - show eyes and fun animations on the screen (personality, not a
      status display)
    - follow a person it detects with the camera (the long-term headline

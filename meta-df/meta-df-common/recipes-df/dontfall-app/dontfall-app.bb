@@ -12,7 +12,7 @@ LICENSE = "CLOSED"
 SRC_URI = "git://git@github.com/LauriAlanen/DontFall-app.git;protocol=ssh;branch=main \
     file://dontfall-app.service \
 "
-SRCREV = "a3bf6dae0d437ce0fb43858cb0758ea0e7680a94"
+SRCREV = "d1c1570417c6ba7eb798f19ace91389e7e06d8c4"
 
 S = "${WORKDIR}/git"
 

@@ -6,52 +6,46 @@ see "Keeping this up to date" at the end.
 
 ## The whole system
 
-GitHub and VS Code render this. In a plain terminal, read the edges:
-`A -->|label| B` means A sends to B over that link. Dashed boxes are
-planned, not built yet (`docs/foc-plan.md`, `docs/balance-plan.md`).
+```
+ PC (WSL2, pc/ros.sh: ROS 2 Jazzy container)
+   ros2 topic/service, teleop_twist_keyboard, PlotJuggler, RViz
+        ^
+        | ROS 2 (DDS) over the LAN
+        v
++------------------------------- STM32MP157C-DK2 ------------------------------+
+|                                                                             |
+|  Cortex-A7, Linux (Yocto df-image-minimal, signed boot)                     |
+|  +--------------------------------+   +----------------------------------+  |
+|  | micro-ROS Agent                |   | dontfall-app (DontFall-app)      |  |
+|  | dontfall-uros-agent.service    |<->| dontfall-app.service             |  |
+|  | XRCE-DDS <-> DDS bridge        |DDS| ROS 2 node dontfall_app, watches |  |
+|  +---------------+----------------+   | /diagnostics, LD8                |  |
+|                  | /dev/ttyRPMSG0     +----------------------------------+  |
+|                  |                                                          |
+|  remoteproc (dontfall-m4.service) loads /lib/firmware/dontfall-m4.elf       |
+|  ================= OpenAMP: RPMsg over shared memory ======================  |
+|                  |                                                          |
+|  Cortex-M4, Zephyr (DontFall-M4)                                            |
+|  +---------------+----------------+   +----------------------------------+  |
+|  | ipc.c: rpmsg-tty               |   | link_led.c                       |  |
+|  | uros.c (prio 5), node          |-->| LD7 on while the Agent session   |  |
+|  | dontfall_m4: imu, arm,         |   | is up                            |  |
+|  | cmd_vel, diagnostics           |   +----------------------------------+  |
+|  +---------------+----------------+                                         |
+|                  | arm, cmd_vel ^ state                                     |
+|  +---------------v--------------+-+   +----------------------------------+  |
+|  | control.c + supervisor.c       |<--| imu.c (prio 7, 850 Hz)           |  |
+|  | arm/disarm, tilt limit, IMU    |   | tilt.c filter, imu_health.c      |  |
+|  | faults, cmd_vel timeout        |   +----------------+-----------------+  |
+|  +--------------------------------+                    | SPI5 + INT1 (EXTI3)|
+|  wdog.c: WWDG1, 100 ms, kicked only while every source checks in           |
++--------------------------------------------------------+--------------------+
+                                                         |
+                                       LSM6DSOX IMU (Arduino Modulino Movement)
 
-```mermaid
-flowchart TB
-    subgraph PC["PC (WSL2, pc/ros.sh: ROS 2 Jazzy container)"]
-        tools["ros2 CLI, teleop_twist_keyboard,<br/>PlotJuggler, RViz"]
-    end
-
-    subgraph BOARD["STM32MP157C-DK2"]
-        subgraph A7["Cortex-A7, Linux (Yocto df-image-minimal, signed boot)"]
-            agent["micro-ROS Agent<br/>dontfall-uros-agent.service<br/>XRCE-DDS to DDS bridge"]
-            app["dontfall-app, node dontfall_app<br/>dontfall-app.service<br/>watches /diagnostics, LD8"]
-            rproc["remoteproc<br/>dontfall-m4.service<br/>loads dontfall-m4.elf"]
-            web["web UI, screen, camera"]:::planned
-        end
-
-        subgraph M4["Cortex-M4, Zephyr (DontFall-M4)"]
-            uros["uros.c, prio 5<br/>node dontfall_m4"]
-            link["ipc.c, link_led.c<br/>rpmsg-tty, LD7 = Agent session"]
-            ctrl["control.c + supervisor.c<br/>arm/disarm, tilt limit,<br/>IMU faults, cmd_vel timeout"]
-            imu["imu.c, prio 7, 850 Hz<br/>tilt.c, imu_health.c"]
-            wdog["wdog.c: WWDG1, 100 ms<br/>kicked only while every source checks in"]
-            foc["FOC + balance controller"]:::planned
-        end
-    end
-
-    sensor["LSM6DSOX IMU<br/>Arduino Modulino Movement"]
-    motor["SimpleFOCMini + gimbal motor<br/>AS5048A encoder"]:::planned
-
-    tools <-->|"ROS 2 (DDS), LAN"| agent
-    agent <-->|"/dev/ttyRPMSG0, RPMsg"| link
-    link <--> uros
-    app <-->|"/diagnostics, DDS"| agent
-    rproc -.->|loads and restarts| M4
-    uros -->|"arm, cmd_vel"| ctrl
-    ctrl -->|"state for /diagnostics"| uros
-    imu -->|"samples, tilt"| ctrl
-    imu -->|"/dontfall_m4/imu data"| uros
-    sensor -->|"SPI5 + INT1 (EXTI3)"| imu
-    ctrl -.->|setpoint| foc
-    foc -.->|"PWM; encoder over SPI"| motor
-    web -.->|"commands via ROS 2"| agent
-
-    classDef planned stroke-dasharray: 5 5
+ Planned, not built yet (docs/foc-plan.md, docs/balance-plan.md):
+   M4: FOC for the motors and the balance controller, the AS5048A encoder
+   on SPI, SimpleFOCMini drivers (PWM). A7: web UI, screen, camera.
 ```
 
 ## The ROS 2 interface of the M4

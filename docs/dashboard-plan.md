@@ -9,7 +9,7 @@ something you can see working. Update the status as steps land.
 | # | Step | Status |
 |---|------|--------|
 | 1 | Foxglove bridge in the PC container, see the board's topics | done |
-| 2 | A DontFall layout in the repo: plots, diagnostics, raw messages | |
+| 2 | A DontFall layout in the repo: plots, diagnostics, raw messages | done |
 | 3 | Control from the dashboard: arm/disarm and drive | |
 | 4 | First custom panel: robot status and a big DISARM | |
 | 5 | Decide: keep growing panels, or a standalone app | |
@@ -82,6 +82,9 @@ safe; a DISARM button is a convenience, not the safety mechanism.
 
 - Build a layout in the app and save it to `pc/foxglove/dontfall.json`,
   so it is in git and anyone (or a new PC) gets the same view.
+  Import it with Layouts -> Import from file. Tilt uses Foxglove's
+  `.@rpy` path function (quaternion to roll/pitch); the armed badge reads
+  `/diagnostics.status[1]`, the supervisor status (`diag.c`).
 - Panels: tilt and gyro plots from `/dontfall_m4/imu`, the Diagnostics
   panel on `/diagnostics` (IMU health, supervisor state, disarm
   reason), Raw Messages for poking around, topic rates.

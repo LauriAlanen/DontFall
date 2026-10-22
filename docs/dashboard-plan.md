@@ -11,7 +11,7 @@ something you can see working. Update the status as steps land.
 | 1 | Foxglove bridge in the PC container, see the board's topics | done |
 | 2 | A DontFall layout in the repo: plots, diagnostics, raw messages | done |
 | 3 | Control from the dashboard: arm/disarm and drive | done |
-| 4 | First custom panel: robot status and a big DISARM | |
+| 4 | First custom panel: robot status and a big DISARM | done |
 | 5 | Decide: keep growing panels, or a standalone app | |
 
 ## The idea, refined
@@ -119,7 +119,7 @@ In sub-steps:
 |---|----------|--------|
 | 4a | Extension in `DontFall-dashboard/dontfall-panels`, status badge (armed / disarmed / no data) | done |
 | 4b | DISARM button in the panel | done |
-| 4c | Tilt gauge | |
+| 4c | Tilt gauge (bubble level, arm and disarm rings) | done |
 
 Small, one panel, one sitting. This is where the custom "visual app"
 starts, without building windows, connections and plotting from

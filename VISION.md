@@ -46,7 +46,7 @@ Principles:
   node and the A7 talks to it with topics and services. The intended route
   is micro-ROS on Zephyr with an RPMsg transport and the micro-ROS Agent on
   the A7, on the one rpmsg channel (`/dev/ttyRPMSG0`). It replaced the
-  first PING/PONG line protocol (`docs/failsafe-plan.md` step 6).
+  first PING/PONG line protocol (`docs/archive/failsafe-plan.md` step 6).
 - **Use standard ROS 2 message types where they fit** (`geometry_msgs/Twist`,
   `sensor_msgs/Imu`, `sensor_msgs/JointState`, diagnostics), so stock
   tooling (`ros2 topic`, rosbag, RViz) works without custom glue. Only
@@ -62,7 +62,7 @@ Principles:
 - **Working:** STM32MP157C-DK2 running the Yocto image with signed boot,
   Zephyr M4 firmware loaded by remoteproc and watched by a hardware
   watchdog, the M4 as ROS 2 node over micro-ROS with arm/disarm,
-  `cmd_vel` and fail-safe (`docs/failsafe-plan.md`), the A7 app as ROS 2
+  `cmd_vel` and fail-safe (`docs/archive/failsafe-plan.md`), the A7 app as ROS 2
   node (LD7/LD8 show the link status), and ROS 2 Jazzy
   (`ros-core` + `demo-nodes-cpp`) on the A7 talking over the LAN to the PC.
 - **On hand, not used yet:** USB camera, and the DK2's own 480x800 DSI

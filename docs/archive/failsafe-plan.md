@@ -312,7 +312,5 @@ Done (DontFall-M4, DontFall-app, the image). How it ended up:
 
 ## Open questions
 
-- A local stop button that works without the A7. The DK2's USER1/USER2
-  buttons share pins with LD5/LD6; who owns them is not checked yet.
-- Whether arming needs more than one ROS call (e.g. hold-to-arm, or arm
-  only from the web UI later).
+Still open, moved to `docs/balance-plan.md`: a local stop button, and
+whether arming needs more than one ROS call.

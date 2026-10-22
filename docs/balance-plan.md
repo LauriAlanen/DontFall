@@ -7,7 +7,7 @@ with the real IMU and no motor. The target is the first bench robot from
 with a flywheel on top, tilt from the IMU). Each step is small and ends
 with something you can see. Update the status as steps land.
 
-Uses the supervisor from `docs/failsafe-plan.md` (armed or not) and needs
+Uses the supervisor from `docs/archive/failsafe-plan.md` (armed or not) and needs
 the room in `docs/hardware.md`, "M4 memory budget", for the M4 step.
 
 | # | Step | Status |
@@ -129,6 +129,11 @@ before it falls.
 
 ## Open questions
 
+- A local stop button that works without the A7, before a motor runs
+  (from the failsafe plan). The DK2's USER1/USER2 buttons share pins
+  with LD5/LD6; who owns them is not checked yet.
+- Whether arming needs more than one ROS call (e.g. hold-to-arm, or arm
+  only from the web UI later; from the failsafe plan).
 - Loop rate: every IMU sample (850 Hz) or every second one. Decide in
   step 5 from the measured time.
 - Kalman filter instead of the complementary filter, if step 4 shows the

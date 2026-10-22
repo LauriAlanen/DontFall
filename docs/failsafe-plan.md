@@ -14,7 +14,7 @@ entities).
 | # | Step | Status |
 |---|------|--------|
 | 1 | Supervisor state machine as plain C, ztest on the host | done |
-| 2 | Supervisor on the M4, its state on a topic (with imu-plan 7d) | todo |
+| 2 | Supervisor on the M4, its state on a topic (with imu-plan 7d) | done, INT1 check pending |
 | 3 | Arm/disarm service from the A7 | todo |
 | 4 | `cmd_vel` subscription and the command timeout | todo |
 | 5 | M4 watchdog (WWDG1) and Linux's crash recovery | todo |
@@ -106,6 +106,35 @@ Decided:
   type per value. Code space from the M4 memory budget decides.
 - Done when: pulling the IMU's INT1 wire shows DISARMED with reason
   "imu" on the PC (`ros2 topic echo`).
+
+Done (DontFall-M4: `control.c`, `diag.c`, `uptime_us.h`). How it ended up:
+
+- `control.c` owns the supervisor. `imu.c` doesn't know about it: it
+  calls a sample callback that `main.c` passes to `imu_init()`, with the
+  time, whether the sample is trusted (healthy and gyro calibrated) and
+  roll/pitch. The supervisor gets `tilt_from_upright()` (new in `tilt.c`,
+  tested): the total lean in any direction, since the balance axis isn't
+  decided on the bench.
+- A lost INT1 never calls the callback, so the sampling path alone can't
+  notice it. A 10 ms `k_timer` in `control.c` feeds the supervisor "IMU
+  not ok" when no sample came for `IMU_HEALTH_TIMEOUT_US`; one spinlock
+  serialises both callers.
+- State changes are printed (`control: ARMED`, `control: DISARMED
+  (tilt)`) from the system work queue, not the sampling path.
+- One clock for all modules: `uptime_us()` in `uptime_us.h` (was a static
+  in `imu.c`).
+- Status topic: `/diagnostics`, `diagnostic_msgs/DiagnosticArray` at 1 Hz,
+  reliable (what rqt_robot_monitor subscribes with). Entries
+  `dontfall_m4: imu` (OK, or ERROR with the fault) and `dontfall_m4:
+  supervisor` ("armed", "disarmed (reason)": WARN after a fault, OK after
+  boot or a request). 1 Hz is enough because the disarm latches. This
+  closes imu-plan 7d.
+- Size: SRAM1 +5.3 KB, RETRAM +3.4 KB to 89.2%, SRAM2 +4.8 KB (the second
+  publisher's buffers). Step 3 must free RETRAM first (`docs/hardware.md`).
+- Checked on the board: `/diagnostics` shows `imu: ok` and `supervisor:
+  disarmed (boot)`, IMU still 850 Hz with 0 errors. Arming only comes in
+  step 3, so the INT1 check here is the IMU entry going to ERROR; the
+  supervisor's disarm on it is checked in step 3.
 
 ## Step 3: arm and disarm
 

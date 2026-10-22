@@ -58,6 +58,16 @@ only if it saves the next agent significant work.
 - **CMake `Release` means `-O3`**, and it comes after Zephyr's `-Os` on
   the command line. External builds (libmicroros) need `MinSizeRel`;
   check the real flags in the build's `flags.make`.
+- **Changing a `CONFIG_MICROROS_*` limit doesn't rebuild libmicroros.**
+  It is an ExternalProject that builds once per build dir, and its
+  makefile only checks that `micro_ros_src/install` exists. Symptom: a new
+  publisher/service/subscription fails to create with `1` (RCL_RET_ERROR)
+  and nothing in the Agent log. Check `RMW_UXRCE_MAX_*` in
+  `modules/lib/micro_ros_zephyr_module/modules/libmicroros/configured_colcon.meta`;
+  to rebuild, delete `micro_ros_src/ include/ libmicroros.a
+  configured_colcon.meta` there (keep `micro_ros_dev/`) and run
+  `scripts/build.sh -p always` (~minutes). Bitbake builds are clean, so
+  only the dev build is affected.
 - **Restarting the M4 does not reset its peripherals.** GPIO, EXTI, SPI
   and the sensors keep their state (and keep running) while the M4 is
   stopped, so the next boot can find pending interrupts. Symptom: every

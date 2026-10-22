@@ -137,20 +137,20 @@ or A7 (Linux).
 ## M4 memory budget
 
 From the linker's memory report (`scripts/build.sh` or the bitbake
-`log.do_compile`), at DontFall-M4 `cfcbe20`. How it got here:
+`log.do_compile`), after failsafe plan step 2. How it got here:
 `docs/archive/m4-memory-plan.md`; why the layout is what it is:
 `docs/archive/ros-plan.md` step 4.
 
 | Region | Holds | Used | Free |
 |--------|-------|-----:|-----:|
-| SRAM1 (`FLASH`), 128 KB | our code, Zephyr, drivers, libc, all non-micro-ROS rodata | 58.4 KB (45.6%) | 69.6 KB |
-| RETRAM (`RETRAM`), 63 KB | libmicroros code + rodata | 52.8 KB (83.9%) | 10.2 KB |
-| SRAM2 (`RAM`), 128 KB | static data, bss, stacks | 60.8 KB (47.5%) | rest is the malloc arena micro-ROS allocates from |
+| SRAM1 (`FLASH`), 128 KB | our code, Zephyr, drivers, libc, all non-micro-ROS rodata | 63.7 KB (49.7%) | 64.3 KB |
+| RETRAM (`RETRAM`), 63 KB | libmicroros code + rodata | 56.2 KB (89.2%) | 6.8 KB |
+| SRAM2 (`RAM`), 128 KB | static data, bss, stacks | 65.6 KB (51.3%) | rest is the malloc arena micro-ROS allocates from |
 
 Rules:
 - Every plan step that adds M4 code notes the new FLASH and RETRAM
   sizes in its own plan, and updates this table when it lands.
-- Stay under 90% of each region. RETRAM is already at 84%, so a new
+- Stay under 90% of each region. RETRAM is already at 89%, so a new
   micro-ROS message type (generated type support lands there) should
   check it; first relief is moving libmicroros's `.rodata` (4.4 KB)
   back to SRAM1 in `app/retram.ld`.

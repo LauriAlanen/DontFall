@@ -80,7 +80,8 @@ safe; a DISARM button is a convenience, not the safety mechanism.
 
 ## Step 2: a DontFall layout
 
-- Build a layout in the app and save it to `pc/foxglove/dontfall.json`,
+- Build a layout in the app and save it to `layouts/dontfall.json` in
+  `DontFall-dashboard`,
   so it is in git and anyone (or a new PC) gets the same view.
   Import it with Layouts -> Import from file. Tilt uses Foxglove's
   `.@rpy` path function (quaternion to roll/pitch); the armed badge reads
@@ -105,7 +106,7 @@ safe; a DISARM button is a convenience, not the safety mechanism.
 ## Step 4: first custom panel
 
 A Foxglove extension (TypeScript + React, `npm init foxglove-extension`)
-with what the stock panels show poorly:
+in `DontFall-dashboard`, with what the stock panels show poorly:
 
 - armed / disarmed as a big coloured badge, the last disarm reason
 - a tilt gauge (an artificial horizon) from the IMU
@@ -147,5 +148,8 @@ Not part of this plan; each is its own step in the plan that needs it.
 ## Open questions
 
 - Foxglove (account, free tier) or Lichtblick (fully open source)?
-- Where do custom panels live: `pc/` in this repo, or a new sibling
-  repo `DontFall-dashboard` once they grow?
+  Foxglove for now (the layout uses `.@rpy`, check it in Lichtblick
+  before switching).
+- Decided: layouts and panels live in the sibling repo
+  `DontFall-dashboard`; the bridge stays in `pc/ros.sh` (it needs the
+  ROS 2 container).

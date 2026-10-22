@@ -35,7 +35,8 @@ budget"). Finished plans are in `docs/archive/`.
 
 Workflow overview: `docs/development.md`. Sibling repos:
 `~/Projects/DontFall-app` (A7 app), `~/Projects/DontFall-M4-ws/DontFall-M4`
-(Zephyr M4 firmware, west workspace).
+(Zephyr M4 firmware, west workspace), `~/Projects/DontFall-dashboard`
+(PC dashboard: Foxglove layouts and panels).
 
 - Private repos are fetched over ssh: load the agent first
   (`. ~/.ssh/ssh-agent` if the human has started one, else ask them to

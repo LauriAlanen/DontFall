@@ -8,6 +8,7 @@ a running board, and how a release image is produced.
 | [DontFall](https://github.com/LauriAlanen/DontFall) | build host | Yocto/OpenSTLinux integration: `repo` manifest, `meta-df` layers, build + deploy scripts, these docs |
 | [DontFall-app](https://github.com/LauriAlanen/DontFall-app) | Cortex-A7, Linux | The application (`/usr/local/bin/dontfall-app`) |
 | [DontFall-M4](https://github.com/LauriAlanen/DontFall-M4) | Cortex-M4, Zephyr | Coprocessor firmware (`/lib/firmware/dontfall-m4.elf`) |
+| [DontFall-dashboard](https://github.com/LauriAlanen/DontFall-dashboard) | PC | Foxglove layouts and panels (`docs/dashboard-plan.md`) |
 
 The A7 and M4 talk over OpenAMP: the M4 firmware announces an `rpmsg-tty`
 channel, which Linux exposes as `/dev/ttyRPMSG0`.
@@ -24,6 +25,7 @@ working tree and pushed to a running board in seconds - no reflash.
     build-stm32mp157c-dk2/
       conf/dev.conf            your dev overrides (not in git)
   DontFall-app/                A7 app repo
+  DontFall-dashboard/          PC dashboard repo (Foxglove)
   DontFall-M4-ws/              west workspace for the M4 (not a git repo)
     DontFall-M4/               M4 repo
     zephyr/, modules/          pinned by DontFall-M4/west.yml
@@ -160,6 +162,7 @@ traffic on the LAN, so any ROS 2 tool on the PC sees it.
    pc/ros.sh ros2 topic echo /dontfall_m4/imu
    pc/ros.sh plotjuggler                          # live plots
    pc/ros.sh rviz2                                # 3D view
+   pc/ros.sh bridge                               # Foxglove, see DontFall-dashboard
    ```
 
 3. **PlotJuggler** (best for watching sensor values): Streaming panel ->

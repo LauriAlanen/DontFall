@@ -8,7 +8,9 @@ see "Keeping this up to date" at the end.
 
 ```
  PC (WSL2, pc/ros.sh: ROS 2 Jazzy container)
-   ros2 topic/service, teleop_twist_keyboard, PlotJuggler, RViz
+   ros2 topic/service, teleop_twist_keyboard, PlotJuggler, RViz,
+   foxglove_bridge <-> ws://localhost:8765 <-> Foxglove on Windows
+   (layout and panels: DontFall-dashboard)
         ^
         | ROS 2 (DDS) over the LAN
         v
@@ -43,11 +45,9 @@ see "Keeping this up to date" at the end.
                                                          |
                                        LSM6DSOX IMU (Arduino Modulino Movement)
 
- Planned, not built yet (docs/foc-plan.md, docs/balance-plan.md,
- docs/dashboard-plan.md):
+ Planned, not built yet (docs/foc-plan.md, docs/balance-plan.md):
    M4: FOC for the motors and the balance controller, the AS5048A encoder
    on SPI, SimpleFOCMini drivers (PWM). A7: screen, camera.
-   PC: Foxglove dashboard via foxglove_bridge (ROS 2 over the LAN).
 ```
 
 ## The ROS 2 interface of the M4
@@ -69,6 +69,9 @@ the A7 and the M4's control code.
   later the motors and balancing. It must stay safe with the A7 dead.
 - **A7:** the micro-ROS Agent, the app (ROS 2 node `dontfall_app`), and later everything
   high level. It only sends commands; it never closes a fast loop.
+- **PC (`DontFall-dashboard`, `pc/` here):** watching and commanding
+  over ROS 2 (Foxglove, PlotJuggler, teleop). A commander like any other;
+  nothing on the robot depends on it.
 - **Build host (`DontFall`):** Yocto layers in `meta-df`, the image, the
   M4 firmware built by bitbake from pinned revisions (`zephyr-m4`
   multiconfig), build and deploy scripts.

@@ -13,7 +13,7 @@ entities).
 
 | # | Step | Status |
 |---|------|--------|
-| 1 | Supervisor state machine as plain C, ztest on the host | todo |
+| 1 | Supervisor state machine as plain C, ztest on the host | done |
 | 2 | Supervisor on the M4, its state on a topic (with imu-plan 7d) | todo |
 | 3 | Arm/disarm service from the A7 | todo |
 | 4 | `cmd_vel` subscription and the command timeout | todo |
@@ -68,6 +68,31 @@ States, to start (decide the details in step 1):
 - Decide: the angles, the command timeout (0.5 s is common for
   `cmd_vel`), and whether "arm" while armed is OK or an error.
 - Done when: the tests pass on `native_sim`, not in the firmware yet.
+
+Done (DontFall-M4 `app/src/supervisor.c`, `tests/supervisor`, 15 tests).
+Decided:
+
+- Arm within ±5° of upright, disarm beyond ±25° (still a guess until
+  balance plan step 4), command timeout 0.5 s. Constants in
+  `supervisor.h`.
+- Arm while armed is accepted (returns OK): a retried service call
+  isn't an error.
+- Arm refusal reasons are the disarm reasons (`imu`, `tilt`); a refusal
+  leaves the last disarm reason alone. Before the first arm the reason
+  is `boot`, after a disarm call `request`.
+- Inputs are a struct (`now_us`, `imu_ok`, `tilt` in rad on the balance
+  axis): the caller maps the IMU to them, so the supervisor doesn't
+  depend on `imu_health.h` or the mount. Motor fault and saturation
+  later become new fields.
+- Same microsecond clock as `imu_health` (`now_us()` in `imu.c`), so
+  timeouts are wrap-safe unsigned differences. `supervisor_update()`
+  forgets a stale command, else after a 71 min silence the wrapped
+  clock would make it look fresh again.
+- NaN tilt fails the checks (written as `!(|tilt| <= limit)`); non-finite
+  commands are ignored.
+- Arming clears the last command: the robot starts from standing still.
+- Checked the tests can fail: NaN tilt passing, the stale command kept,
+  and an automatic re-arm are each caught.
 
 ## Step 2: on the M4, state on a topic
 

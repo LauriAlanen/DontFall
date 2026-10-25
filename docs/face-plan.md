@@ -9,7 +9,7 @@ Update the status as steps land.
 
 | # | Step | Status |
 |---|------|--------|
-| 0 | Check the display and touch on the board, no code | todo |
+| 0 | Check the display and touch on the board, no code | done |
 | 1 | GPU on: accept ST's EULA, Vivante driver, `kmscube` on the screen | todo |
 | 2 | SDL2 in the build, a new `dontfall-face` program: still eyes from one shader | todo |
 | 3 | Moods and tweens; alive when idle (blinks, glances), CPU/GPU measured | todo |
@@ -123,6 +123,16 @@ model, never the drawing code.
 - Record in `docs/hardware.md`: DRM card and connector, mode, pixel
   formats of the primary plane, touch input device, backlight sysfs path.
 - Done when: a test pattern is on the screen and touch events print.
+
+Result (2026-10-25): the panel's DRM driver (`stm`) had never probed.
+The LTDC waits for both of its outputs in the devicetree, DSI and HDMI,
+and image plan step 2 had dropped the HDMI bridge module (`sii902x`),
+so it stayed in deferred probe; the `/dev/dri/card0` seen then was
+`simpledrm`, U-Boot's framebuffer. `kernel-module-sii902x` is back in
+the machine conf. With it: `DSI-1` connected at 480x800, test pattern
+on the panel, touch events from `evtest`. Details in `docs/hardware.md`
+("Display and touch"). Nothing else draws on the panel (no fbdev
+console), so nothing needs to be moved out of the way in step 7.
 
 ## Step 1: GPU on
 

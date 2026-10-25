@@ -94,7 +94,9 @@ crypto drivers (~3 s around 12-16 s in the boot log), fixed in step 2.
   `lttng-modules` (LTTng kernel tracer; ROS 2 tracing is userspace,
   lttng-ust) and `cryptodev-module` (OpenSSL /dev/crypto, unused).
 - Verified on the board: M4 link up (dontfall-app), `/dev/ttyRPMSG0/1`,
-  WiFi IP, `/dev/dri/card*`, no failed units, micro-ROS Agent shows
+  WiFi IP, `/dev/dri/card*` (that was only `simpledrm`: the real display
+  driver needed `sii902x` too, fixed in face plan step 0), no failed
+  units, micro-ROS Agent shows
   `/dontfall_m4/counter`.
 
 | | Baseline | Step 1 | Step 2 |

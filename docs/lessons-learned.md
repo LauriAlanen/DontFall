@@ -112,6 +112,13 @@ only if it saves the next agent significant work.
   channels. Wait for `[ -c /dev/ttyRPMSG0 ]`; `rm` a stale regular file
   and restart the M4.
 
+- **`/dev/dri/card0` existing doesn't mean the display works.** It can
+  be `simpledrm` (U-Boot's framebuffer) while the real `stm` driver sits
+  in deferred probe (`/sys/kernel/debug/devices_deferred`). The LTDC
+  waits for every output in the devicetree, so the HDMI bridge module
+  (`sii902x`) is needed even for the DSI panel. Check
+  `/sys/kernel/debug/dri/*/name`.
+
 ## Hardware
 
 - **Both cores share the GPIO register banks.** Zephyr's STM32 GPIO driver

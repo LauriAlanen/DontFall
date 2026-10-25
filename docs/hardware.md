@@ -162,6 +162,23 @@ Rules:
   MTU or history, or `float` instead of `double` maths in our code
   (the M4's FPU is single precision only).
 
+## Display and touch
+
+The DK2's own MB1407 board, checked in face plan step 0
+(`docs/face-plan.md`).
+
+| What | Value |
+|------|-------|
+| Display | LTDC -> DSI -> Orise Tech OTM8009A panel, DRM driver `stm` |
+| DRM device | `/dev/dri/by-path/platform-5a001000.display-controller-card` (the card number can change: `simpledrm` holds card0 until `stm` loads) |
+| Connector | `DSI-1` (id 34), CRTC id 41; `HDMI-A-1` (SiI9022 bridge) exists too, unused |
+| Modes | 480x800 portrait, 50 Hz (preferred) and 60 Hz; 52x86 mm |
+| Planes | primary (id 37): XR24/AR24, RG24, RG16 (RGB565) and more; one overlay (id 42) |
+| Backlight | `/sys/class/backlight/5a000000.dsi.0`, 0-255 |
+| Touch | FocalTech `EP0110M09` (driver `edt-ft5x06`) on I2C1 at 0x38, `/dev/input/by-path/platform-40012000.i2c-event`; x 0-479, y 0-799 (same orientation as the panel), 2 touch points, ~100 Hz |
+| Console | none on the panel: no fbdev emulation, the VT console is the dummy device, so the getty on tty1 draws nothing |
+| GPU | Vivante GC400 rev 4652 at `59000000.gpu`, `etnaviv` for now (`/dev/dri/card1`, `renderD128`) |
+
 ## Parts
 
 | Part | Status |

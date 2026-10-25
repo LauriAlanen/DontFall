@@ -14,7 +14,7 @@ SRC_URI = "git://git@github.com/LauriAlanen/DontFall-app.git;protocol=ssh;branch
     file://dontfall-app.service \
     file://dontfall-face.service \
 "
-SRCREV = "d1c1570417c6ba7eb798f19ace91389e7e06d8c4"
+SRCREV = "18d29989151511e073f72ad9b1cc55678c43cce0"
 
 S = "${WORKDIR}/git"
 

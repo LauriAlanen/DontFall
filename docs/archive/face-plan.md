@@ -375,8 +375,8 @@ the eyes start before ROS is up anyway. `modetest`, `evtest` and
 - Look at things: a topic such as `/face/look_at` that the person
   follower (or the camera) can publish to; the gaze goes there instead of
   random glances.
-- Richer looks in the same shader: glow, iris rings, scanlines, a
-  "glitch" on faults.
+- Richer looks in the same shader: done after step 7 (2026-10-25), see
+  below. Iris rings and scanlines left out (GPU budget).
 - Preview the face on the PC (the same SDL2 + GLES code in WSLg) to tune
   moods without deploying.
 - Screen brightness: dim when idle, off when disarmed for a long time.
@@ -392,3 +392,31 @@ the eyes start before ROS is up anyway. `modetest`, `evtest` and
 - Whether SDL2's KMS/DRM backend works with ST's gcnano GBM out of the
   box; if not, fall back to raw GBM/EGL like `kmscube` does (step 1
   proves that path works).
+
+## After the plan: richer looks (2026-10-25)
+
+GPU ms per frame, worst moods first (`--gpu-time --mood <name>`):
+
+| Version | neutral | happy | angry | sleepy | squint |
+|---|---|---|---|---|---|
+| end of step 7 | 11.8 | 14.8 | 12.0 | 15.1 | 15.5 |
+| per-pixel work moved to the CPU / vertex shader | 10.5 | 13.2 | 11.0 | 14.5 | 14.3 |
+| + rim, shading, scanlines | 15.1 | 17.7 | 15.2 | 18.5 | 18.8 |
+| scanlines out, shading in the vertex shader | 12.1 | 15.2 | 12.4 | 16.0 | 15.8 |
+| + glitch, bands only while glitching (final) | 12.3 | 14.9 | 17.2 | 16.0 | 16.1 |
+
+- Freed first: the corner radius limit and 1 / glow width on the CPU,
+  positions relative to the eye's centre from the vertex shader (lids
+  converted on the CPU).
+- Rim (brighter along the edge, from the same distance) and shading
+  (darker towards the bottom, linear, so a varying from the vertex
+  shader): ~1.5 ms.
+- Scanlines cost ~3 ms (`fract`/`step` per pixel): left out.
+- Glitch, the fault look: `Mood::glitch` (angry = 1), so it fades with
+  the mood. The eye is drawn as 16 bands and the vertex shader moves a
+  random third of them sideways, 12 new patterns a second: nothing per
+  pixel. Drawing the bands all the time cost ~1 ms in every mood, so
+  only while glitching.
+- All moods 49-50 fps. Headroom is gone: anything more needs a cheaper
+  trick or something given up.
+

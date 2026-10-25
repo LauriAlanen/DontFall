@@ -14,7 +14,7 @@ Update the status as steps land.
 | 2 | SDL2 in the build, a new `dontfall-face` program: still eyes from one shader | done |
 | 3 | Moods and tweens; alive when idle (blinks, glances), CPU/GPU measured | done |
 | 4 | ROS 2 node: googly eyes driven by the IMU's gravity vector | done |
-| 5 | Moods from the robot's state (armed, fault, link lost) | todo |
+| 5 | Moods from the robot's state (armed, fault, link lost) | done |
 | 6 | Touch: poke the eyes | todo |
 | 7 | Systemd service, starts at boot, below the robot's own processes | todo |
 
@@ -313,6 +313,21 @@ Tuning by feel, for the next time:
   Agent is gone).
 - Done when: arming, disarming, a fault and stopping the Agent each
   change the face.
+
+Result (2026-10-25): the node also subscribes to `/diagnostics` (only
+the M4's message, the one with `dontfall_m4: supervisor`).
+`robot_state.hpp` (plain logic): link lost when no IMU sample or M4
+status for 3 s, fault on any non-OK M4 status (IMU error or a safety
+disarm), else armed or disarmed. `mood_picker.cpp`: link lost = sleepy,
+after 10 s asleep (new mood, closing over 3 s); fault = angry; armed =
+surprised for 1.2 s, then focused (new mood, green-cyan); disarmed =
+neutral with passing moods (happy, sad, surprised; not angry or sleepy,
+which mean something), restarted on every return to disarmed. A hard
+knock of the googly eyes surprises it while armed or disarmed. The face
+starts as link lost, so it wakes up when the M4's data arrives. Each
+change is logged, e.g. `mood angry (fault: supervisor disarmed (tilt))`.
+Checked on the board: arm, disarm, tilt past the limit, stopping and
+starting the micro-ROS Agent.
 
 ## Step 6: touch
 

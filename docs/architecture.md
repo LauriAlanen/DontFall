@@ -28,7 +28,8 @@ see "Keeping this up to date" at the end.
 |                  |                    | ROS 2 node dontfall_face, run by |  |
 |                  |                    | hand: eyes on the DSI panel      |  |
 |                  |                    | (SDL2 on KMS, GLES 2.0 on GPU),  |  |
-|                  |                    | hears /dontfall_m4/imu           |  |
+|                  |                    | hears /dontfall_m4/imu and       |  |
+|                  |                    | /diagnostics                     |  |
 |                  |                    +----------------------------------+  |
 |                  |                                                          |
 |  remoteproc (dontfall-m4.service) loads /lib/firmware/dontfall-m4.elf       |

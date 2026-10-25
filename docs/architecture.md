@@ -23,6 +23,13 @@ see "Keeping this up to date" at the end.
 |  | XRCE-DDS <-> DDS bridge        |DDS| ROS 2 node dontfall_app, watches |  |
 |  +---------------+----------------+   | /diagnostics, LD8                |  |
 |                  | /dev/ttyRPMSG0     +----------------------------------+  |
+|                  |                    +----------------------------------+  |
+|                  |                    | dontfall-face (DontFall-app)     |  |
+|                  |                    | ROS 2 node dontfall_face, run by |  |
+|                  |                    | hand: eyes on the DSI panel      |  |
+|                  |                    | (SDL2 on KMS, GLES 2.0 on GPU),  |  |
+|                  |                    | hears /dontfall_m4/imu           |  |
+|                  |                    +----------------------------------+  |
 |                  |                                                          |
 |  remoteproc (dontfall-m4.service) loads /lib/firmware/dontfall-m4.elf       |
 |  ================= OpenAMP: RPMsg over shared memory ======================  |
@@ -47,9 +54,8 @@ see "Keeping this up to date" at the end.
 
  Planned, not built yet (docs/foc-plan.md, docs/balance-plan.md):
    M4: FOC for the motors and the balance controller, the AS5048A encoder
-   on SPI, SimpleFOCMini drivers (PWM). A7: camera; the face
-   (dontfall-face: SDL2 on DRM/KMS + GLES 2.0 on the GPU, docs/face-plan.md)
-   runs by hand so far, not yet a ROS 2 node or a service.
+   on SPI, SimpleFOCMini drivers (PWM). A7: camera; dontfall-face as a
+   service (docs/face-plan.md step 7).
 ```
 
 ## The ROS 2 interface of the M4
@@ -69,7 +75,8 @@ the A7 and the M4's control code.
 - **M4:** everything timing critical and every safety decision: the IMU,
   the supervisor (armed or not), the command timeout, the watchdog, and
   later the motors and balancing. It must stay safe with the A7 dead.
-- **A7:** the micro-ROS Agent, the app (ROS 2 node `dontfall_app`), and later everything
+- **A7:** the micro-ROS Agent, the app (ROS 2 node `dontfall_app`), the face
+  (ROS 2 node `dontfall_face`, only listens), and later everything
   high level. It only sends commands; it never closes a fast loop.
 - **PC (`DontFall-dashboard`, `pc/` here):** watching and commanding
   over ROS 2 (Foxglove, PlotJuggler, teleop). A commander like any other;

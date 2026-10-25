@@ -13,7 +13,7 @@ Update the status as steps land.
 | 1 | GPU on: accept ST's EULA, Vivante driver, `kmscube` on the screen | done |
 | 2 | SDL2 in the build, a new `dontfall-face` program: still eyes from one shader | done |
 | 3 | Moods and tweens; alive when idle (blinks, glances), CPU/GPU measured | done |
-| 4 | ROS 2 node: googly eyes driven by the IMU's gravity vector | todo |
+| 4 | ROS 2 node: googly eyes driven by the IMU's gravity vector | done |
 | 5 | Moods from the robot's state (armed, fault, link lost) | todo |
 | 6 | Touch: poke the eyes | todo |
 | 7 | Systemd service, starts at boot, below the robot's own processes | todo |
@@ -281,6 +281,27 @@ that misses 20 ms drops the rate to 25 fps:
   waits on ROS.
 - `docs/architecture.md`: add the new process and its subscriptions.
 - Done when: tilting and shaking the board moves the eyes believably.
+
+Result (2026-10-25): `imu_listener.cpp` (node `dontfall_face`, best
+effort subscription, spun in its own thread, latest sample under a
+mutex; rclcpp's signal handlers off so SDL's SIGTERM still ends the
+loop) and `googly.cpp` (spring towards the idle gaze, pushed by minus the
+accelerometer's in-plane part, smoothed over 60 ms, round edge with
+bounce and squash). 50 fps, ~8% of one core. Tilting and shaking the IMU
+module (it isn't on the DK2) moves the eyes. Also: passing moods (every
+6-15 s a random mood for 2-4 s) and a surprised look when the eyes hit
+the edge hard, until step 5 drives the moods.
+
+Tuning by feel, for the next time:
+
+- Spring 4 Hz / 0.25 damping felt stiff and slow tilts barely moved the
+  eyes; 2.5 Hz with twice the push was chaotic and sloppy; kept 3.5 Hz,
+  0.4 damping, 0.17 of the edge per m/s^2.
+- A dead zone (~6 degrees) against noise felt clunky: removed, the 60 ms
+  smoothing is enough.
+- Much of the early "sloppy" was the axis mapping: the module lies turned
+  90 degrees to the landscape view. `imu_push()` in `googly.hpp`: screen
+  x = IMU y, screen y = IMU x, checked by tilting.
 
 ## Step 5: moods from the robot's state
 

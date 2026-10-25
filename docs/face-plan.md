@@ -10,7 +10,7 @@ Update the status as steps land.
 | # | Step | Status |
 |---|------|--------|
 | 0 | Check the display and touch on the board, no code | done |
-| 1 | GPU on: accept ST's EULA, Vivante driver, `kmscube` on the screen | todo |
+| 1 | GPU on: accept ST's EULA, Vivante driver, `kmscube` on the screen | done |
 | 2 | SDL2 in the build, a new `dontfall-face` program: still eyes from one shader | todo |
 | 3 | Moods and tweens; alive when idle (blinks, glances), CPU/GPU measured | todo |
 | 4 | ROS 2 node: googly eyes driven by the IMU's gravity vector | todo |
@@ -153,6 +153,25 @@ console), so nothing needs to be moved out of the way in step 7.
   rootfs size change here.
 - Done when: `kmscube` spins smoothly on the panel and `galcore` is
   loaded.
+
+Result (2026-10-25): EULA accepted in `local.conf.sample` and the
+build's `local.conf`; `etnaviv` out of the machine conf; the image
+installs `${GPU_IMAGE_INSTALL}` (ST's images do that themselves, ours
+starts from core-boot) and `kmscube`. Build: only the GPU packages and
+the image rebuilt. On the board: `galcore` 6.4.21 loaded, `/dev/galcore`,
+EGL 1.5 and OpenGL ES 2.0 (GLSL ES 1.00) from Vivante, with
+`EGL_KHR_platform_gbm` and `GL_OES_standard_derivatives` (handy for
+anti-aliased SDF edges). `kmscube` runs at 50.0 fps, locked to the
+panel's 50 Hz mode, at ~2% CPU.
+
+- The GPU driver reserves 64 MB of RAM (`gpu@d4000000` in the
+  devicetree): Linux now sees 396 MB. After boot: 56 MB used (was 37),
+  rootfs 281 MB (was 249), `/vendor` 6.7 of 14 MB, systemd 14.4 s.
+- The libraries live on the vendorfs partition (`/vendor/lib`, ST's
+  `ST_VENDORFS`), found through `/etc/ld.so.conf.d/gcnano.conf`.
+  `deploy.sh` now mounts `/vendor` too before an image deploy.
+- An image deploy only adds files: the old `etnaviv.ko` had to be
+  removed on the board by hand.
 
 ## Step 2: SDL2 and still eyes
 

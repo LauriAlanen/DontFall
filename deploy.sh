@@ -71,11 +71,13 @@ getvar() { # <recipe> <var>
     dcni bitbake -e "$1" 2>/dev/null | sed -n 's/^'"$2"'="\(.*\)"$/\1/p' | tail -n1
 }
 
-# Make sure the separate bootfs/userfs partitions are mounted on the target
-# so files routed to /boot and /usr/local land in the right partition
-# (the wic image is built with --no-fstab-update).
+# Make sure the separate bootfs/vendorfs/userfs partitions are mounted on
+# the target so files routed to /boot, /vendor (GPU libraries) and
+# /usr/local land in the right partition (the wic image is built with
+# --no-fstab-update).
 ensure_mounts() {
     tsh 'mountpoint -q /boot || mount LABEL=bootfs /boot;
+         mountpoint -q /vendor || mount LABEL=vendorfs /vendor;
          mountpoint -q /usr/local || mount LABEL=userfs /usr/local;
          true' >/dev/null 2>&1 || true
 }

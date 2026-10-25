@@ -177,7 +177,7 @@ The DK2's own MB1407 board, checked in face plan step 0
 | Backlight | `/sys/class/backlight/5a000000.dsi.0`, 0-255 |
 | Touch | FocalTech `EP0110M09` (driver `edt-ft5x06`) on I2C1 at 0x38, `/dev/input/by-path/platform-40012000.i2c-event`; x 0-479, y 0-799 (same orientation as the panel), 2 touch points, ~100 Hz |
 | Console | none on the panel: no fbdev emulation, the VT console is the dummy device, so the getty on tty1 draws nothing |
-| GPU | Vivante GC400 rev 4652 at `59000000.gpu`, `etnaviv` for now (`/dev/dri/card1`, `renderD128`) |
+| GPU | Vivante GC400 rev 4652 at `59000000.gpu`, ST's `galcore` driver (`/dev/galcore`), OpenGL ES 2.0 + EGL 1.5 + GBM from `gcnano-userland` on `/vendor/lib`; reserves 64 MB of RAM at 0xd4000000 |
 
 ## Parts
 

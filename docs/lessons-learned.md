@@ -112,12 +112,18 @@ only if it saves the next agent significant work.
   channels. Wait for `[ -c /dev/ttyRPMSG0 ]`; `rm` a stale regular file
   and restart the M4.
 
+## Display and GPU (A7)
+
 - **`/dev/dri/card0` existing doesn't mean the display works.** It can
   be `simpledrm` (U-Boot's framebuffer) while the real `stm` driver sits
   in deferred probe (`/sys/kernel/debug/devices_deferred`). The LTDC
   waits for every output in the devicetree, so the HDMI bridge module
   (`sii902x`) is needed even for the DSI panel. Check
   `/sys/kernel/debug/dri/*/name`.
+
+- **`modetest -s` and `kmscube` quit at once over ssh** when stdin is
+  closed (they treat EOF as a key press: "user interrupted!"). Keep
+  stdin open: `sleep 30 | kmscube ...`.
 
 ## Hardware
 

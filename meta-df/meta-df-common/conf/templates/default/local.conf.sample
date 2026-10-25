@@ -9,9 +9,10 @@ PACKAGE_CLASSES ?= "package_ipk"
 EXTRA_IMAGE_FEATURES ?= "debug-tweaks"
 USER_CLASSES ?= "buildstats"
 
-# GPU binary packages (gcnano-userland) require accepting the ST EULA.
-# Read it first: meta-st-stm32mp/conf/eula/stm32mp15-disco
-#ACCEPT_EULA_stm32mp157c-dk2 = "1"
+# GPU binary packages (gcnano-userland) require accepting the ST EULA:
+# meta-st-stm32mp/conf/eula/ST_EULA_SLA. Accepted for DontFall (hobby
+# project, docs/face-plan.md step 1); it turns on the "gpu" machine feature.
+ACCEPT_EULA_stm32mp157c-dk2 = "1"
 
 # Generate a raw sdcard image (wic) on image build
 WKS_IMAGE_FSTYPES += "wic wic.bz2 wic.bmap"

@@ -46,9 +46,16 @@ IMAGE_INSTALL += "dontfall-m4-firmware m4fwcoredump"
 # on boot (bootfs/vendorfs likewise) - the wic image has no fstab entries.
 IMAGE_INSTALL += "dontfall-app systemd-mount-partitions"
 
+# GPU (ST EULA accepted in local.conf -> "gpu" machine feature): ST's
+# galcore kernel module and its EGL/GBM/GLES userland (on /vendor). ST's
+# images add GPU_IMAGE_INSTALL themselves; this image starts from
+# packagegroup-core-boot, so it is listed here.
+IMAGE_INSTALL += "${GPU_IMAGE_INSTALL}"
+
 # Display bring-up tools (docs/face-plan.md, steps 0-1), temporary:
-# modetest (DRM/KMS state, test patterns) and evtest (touch events).
-IMAGE_INSTALL += "libdrm-tests evtest"
+# modetest (DRM/KMS state, test patterns), evtest (touch events) and
+# kmscube (GBM + EGL + GLES 2.0 on KMS, the GPU smoke test).
+IMAGE_INSTALL += "libdrm-tests evtest kmscube"
 
 # ROS core, demo nodes, and micro-ROS Agent (bridges M4 over RPMsg to ROS 2)
 IMAGE_INSTALL += "ros-core demo-nodes-cpp micro-ros-agent"

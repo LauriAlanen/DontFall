@@ -15,7 +15,7 @@ Update the status as steps land.
 | 3 | Moods and tweens; alive when idle (blinks, glances), CPU/GPU measured | done |
 | 4 | ROS 2 node: googly eyes driven by the IMU's gravity vector | done |
 | 5 | Moods from the robot's state (armed, fault, link lost) | done |
-| 6 | Touch: poke the eyes | todo |
+| 6 | Touch: poke the eyes | done |
 | 7 | Systemd service, starts at boot, below the robot's own processes | todo |
 
 ## What is already there
@@ -337,6 +337,14 @@ starting the micro-ROS Agent.
   something sillier (dizzy wobble).
 - Touch never commands the robot (no arming or driving from the screen).
 - Done when: pokes are noticed reliably.
+
+Result (2026-10-25): SDL's touch events (`SDL_FINGERDOWN`, 0..1 on the
+panel) came through from evdev with no udev rules or setup. The renderer
+maps them to logical pixels with the same transform it draws with. A
+touch on or near an eye (30 px) blinks at once and squints for 1 s (new
+`squint` mood); a touch elsewhere makes the eyes glance there and hold
+for 2 s; holding 0.8 s makes them roll round in circles for 2 s (the
+googly spring chases a point on a circle). Touch only changes the face.
 
 ## Step 7: service
 

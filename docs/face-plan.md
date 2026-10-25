@@ -12,7 +12,7 @@ Update the status as steps land.
 | 0 | Check the display and touch on the board, no code | done |
 | 1 | GPU on: accept ST's EULA, Vivante driver, `kmscube` on the screen | done |
 | 2 | SDL2 in the build, a new `dontfall-face` program: still eyes from one shader | done |
-| 3 | Moods and tweens; alive when idle (blinks, glances), CPU/GPU measured | 3a done (moods, tweens, `--demo`) |
+| 3 | Moods and tweens; alive when idle (blinks, glances), CPU/GPU measured | done |
 | 4 | ROS 2 node: googly eyes driven by the IMU's gravity vector | todo |
 | 5 | Moods from the robot's state (armed, fault, link lost) | todo |
 | 6 | Touch: poke the eyes | todo |
@@ -226,6 +226,43 @@ recipe's prefix is `/usr/local`).
   budget on the A7.
 - Done when: every mood looks right, the idle eyes look alive and the
   numbers are recorded.
+
+Result (2026-10-25), in three parts:
+
+- 3a: `mood.hpp` (a mood = size, corner radius, top lid amount and tilt,
+  bottom lid amount and roundness, colour; the table of six moods),
+  `Tween<T>` (smoothstep from the current value to a target), lids in the
+  shader. `--demo` cycles the moods, `--mood <name>` holds one.
+- 3b: `idle.cpp`: blinks every 2-6 s (20% double), glances every 1-4 s
+  (90 ms saccade, 40% back to the middle); looking sideways grows the eye
+  on that side a little. Timings are constants at the top of the file.
+- 3c: a colour per mood (cyan neutral, warm yellow happy, blue sad, red
+  angry, pale surprised, dim sleepy) and a glow. `--stats` prints the
+  frame rate, `--gpu-time` also the GPU's time per frame (glFinish).
+
+Measured on the GC400, frames are paced by the 50 Hz panel, so a frame
+that misses 20 ms drops the rate to 25 fps:
+
+| Version | GPU ms per frame | fps |
+|---|---|---|
+| shader over the whole screen, two eyes, lids, glow | ~110 | 8.3 |
+| one rectangle per eye (glow 40 px) | 21 | 26 |
+| filling those rectangles with a flat colour | 2.7 | 50 |
+| + unused lids skipped, glow 28 px: neutral / sleepy | 14.6 / 19.9 | 50 / 26 |
+| final: glow 12 px, worst mood (sleepy) | 15.6 | 50 |
+
+- The GC400 is slow at per-pixel maths, not at filling: a flat colour
+  costs ~2.7 ms for both eye rectangles, the eye shape and glow ~12 ms,
+  the top lid ~2 ms and the bottom lid ~4 ms. Lower precision (mediump)
+  and a parabola instead of the circle made no difference.
+- The real budget is below 20 ms: frames of ~18 ms GPU time still ran at
+  ~26 fps (clear, page flip). Keep the worst mood under ~16 ms.
+- A branch on a uniform (lid used or not) is nearly free, every pixel
+  takes the same way.
+- Final: 49-50 fps in the demo and idle, ~7% of one A7 core. 32-bit
+  colour stays (RGB565 wouldn't help: filling isn't the cost).
+- Headroom is small: anything bigger on screen (larger eyes, a wider
+  glow, more shapes) needs measuring with `--gpu-time --mood sleepy`.
 
 ## Step 4: googly eyes from the IMU
 

@@ -66,8 +66,10 @@ Principles:
   `cmd_vel` and fail-safe (`docs/archive/failsafe-plan.md`), the A7 app as ROS 2
   node (LD7/LD8 show the link status), and ROS 2 Jazzy
   (`ros-core` + `demo-nodes-cpp`) on the A7 talking over the LAN to the PC.
-- **On hand, not used yet:** USB camera, and the DK2's own 480x800 DSI
-  display (MB1407), which is the robot's screen.
+- **The robot's face:** the DK2's own 480x800 DSI display (MB1407)
+  shows googly eyes, drawn on the GPU, that roll with the IMU, react to
+  touch and show the robot's state (`docs/archive/face-plan.md`).
+- **On hand, not used yet:** USB camera.
 - **Coming soon:** one SimpleFOC board and one BLDC motor, so the first
   motor work is a single motor on the bench.
 - **ROS 2 distribution:** Jazzy (LTS), from meta-ros on scarthgap.

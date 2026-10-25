@@ -1,11 +1,10 @@
 # Face plan (googly eyes)
 
-Working plan for the robot's face: two eyes on the DK2's 480x800 DSI
-display that blink, look around, slide with the IMU like googly eyes and
-show the robot's state. Personality, not a status display (VISION.md).
-All of it is A7 work and needs nothing beyond the DK2 and the IMU that
-already work. Each step is small and ends with something you can see.
-Update the status as steps land.
+Finished plan (all steps done, 2026-10-25) for the robot's face: two
+eyes on the DK2's 480x800 DSI display that blink, look around, slide
+with the IMU like googly eyes and show the robot's state. Personality,
+not a status display (VISION.md). The code is `src/face/` in
+DontFall-app (`dontfall-face`, ROS 2 node `dontfall_face`).
 
 | # | Step | Status |
 |---|------|--------|
@@ -16,7 +15,7 @@ Update the status as steps land.
 | 4 | ROS 2 node: googly eyes driven by the IMU's gravity vector | done |
 | 5 | Moods from the robot's state (armed, fault, link lost) | done |
 | 6 | Touch: poke the eyes | done |
-| 7 | Systemd service, starts at boot, below the robot's own processes | todo |
+| 7 | Systemd service, starts at boot, below the robot's own processes | done |
 
 ## What is already there
 
@@ -359,6 +358,17 @@ googly spring chases a point on a circle). Touch only changes the face.
 - `docs/architecture.md`: the face as a service, the GPU in use.
 - Done when: the face comes up on boot, comes back after `kill`, and the
   robot's other services don't notice it.
+
+Result (2026-10-25): `dontfall-face.service` from the `dontfall-app`
+recipe: ROS environment, `RequiresMountsFor=/usr/local /vendor` (binary
+on userfs, GPU libraries on vendorfs), `Restart=on-failure` every 2 s
+with no start limit (in case it starts before the panel's DRM driver;
+on the board it didn't need to), `Nice=10`. Up ~8 s after it starts
+(sleepy until the M4's data arrives, then neutral), boot still 14.4 s,
+~8% of one core. After `kill -9` systemd restarts it in 2 s; the app and
+the micro-ROS Agent don't notice. No getty or console to move (step 0),
+the eyes start before ROS is up anyway. `modetest`, `evtest` and
+`kmscube` are out of the image again.
 
 ## Later
 

@@ -4,13 +4,15 @@ the pinned SRCREV from git; during development conf/dev.conf points \
 EXTERNALSRC at the sibling checkout (~/Projects/DontFall-app) so bitbake \
 and ./deploy.sh build your working tree. The image starts it at boot via \
 dontfall-app.service: the A7's ROS 2 node, with blue LD8 showing whether \
-the M4's /diagnostics arrive."
+the M4's /diagnostics arrive, and dontfall-face.service: the robot's eyes on \
+the DSI panel (ROS 2 node dontfall_face)."
 LICENSE = "CLOSED"
 
 # Release build input: bump SRCREV to a pushed commit of DontFall-app.
 # Private repo: fetched over ssh with the host ssh-agent (see build.sh).
 SRC_URI = "git://git@github.com/LauriAlanen/DontFall-app.git;protocol=ssh;branch=main \
     file://dontfall-app.service \
+    file://dontfall-face.service \
 "
 SRCREV = "d1c1570417c6ba7eb798f19ace91389e7e06d8c4"
 
@@ -46,9 +48,10 @@ nonarch_base_libdir = "${@bb.utils.contains('DISTRO_FEATURES', 'usrmerge', '/usr
 
 do_install:append() {
     install -D -m 0644 ${WORKDIR}/dontfall-app.service ${D}${systemd_system_unitdir}/dontfall-app.service
+    install -D -m 0644 ${WORKDIR}/dontfall-face.service ${D}${systemd_system_unitdir}/dontfall-face.service
 }
 
-SYSTEMD_SERVICE:${PN} = "dontfall-app.service"
+SYSTEMD_SERVICE:${PN} = "dontfall-app.service dontfall-face.service"
 SYSTEMD_AUTO_ENABLE = "enable"
 
 # Install under /usr/local: app files land on the dedicated userfs partition

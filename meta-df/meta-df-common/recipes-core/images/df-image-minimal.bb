@@ -52,11 +52,6 @@ IMAGE_INSTALL += "dontfall-app systemd-mount-partitions"
 # packagegroup-core-boot, so it is listed here.
 IMAGE_INSTALL += "${GPU_IMAGE_INSTALL}"
 
-# Display bring-up tools (docs/face-plan.md, steps 0-1), temporary:
-# modetest (DRM/KMS state, test patterns), evtest (touch events) and
-# kmscube (GBM + EGL + GLES 2.0 on KMS, the GPU smoke test).
-IMAGE_INSTALL += "libdrm-tests evtest kmscube"
-
 # ROS core, demo nodes, and micro-ROS Agent (bridges M4 over RPMsg to ROS 2)
 IMAGE_INSTALL += "ros-core demo-nodes-cpp micro-ros-agent"
 # ... started whenever the M4's micro-ROS tty (/dev/ttyRPMSG0) exists

@@ -165,7 +165,7 @@ Rules:
 ## Display and touch
 
 The DK2's own MB1407 board, checked in face plan step 0
-(`docs/face-plan.md`).
+(`docs/archive/face-plan.md`).
 
 | What | Value |
 |------|-------|

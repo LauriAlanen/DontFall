@@ -25,8 +25,9 @@ see "Keeping this up to date" at the end.
 |                  | /dev/ttyRPMSG0     +----------------------------------+  |
 |                  |                    +----------------------------------+  |
 |                  |                    | dontfall-face (DontFall-app)     |  |
-|                  |                    | ROS 2 node dontfall_face, run by |  |
-|                  |                    | hand: eyes on the DSI panel      |  |
+|                  |                    | dontfall-face.service, Nice 10   |  |
+|                  |                    | ROS 2 node dontfall_face: eyes   |  |
+|                  |                    | on the DSI panel                 |  |
 |                  |                    | (SDL2 on KMS, GLES 2.0 on GPU),  |  |
 |                  |                    | hears /dontfall_m4/imu and       |  |
 |                  |                    | /diagnostics                     |  |
@@ -55,8 +56,7 @@ see "Keeping this up to date" at the end.
 
  Planned, not built yet (docs/foc-plan.md, docs/balance-plan.md):
    M4: FOC for the motors and the balance controller, the AS5048A encoder
-   on SPI, SimpleFOCMini drivers (PWM). A7: camera; dontfall-face as a
-   service (docs/face-plan.md step 7).
+   on SPI, SimpleFOCMini drivers (PWM). A7: camera.
 ```
 
 ## The ROS 2 interface of the M4

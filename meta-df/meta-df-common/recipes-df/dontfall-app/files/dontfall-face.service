@@ -1,0 +1,19 @@
+[Unit]
+Description=DontFall face (ROS 2 node dontfall_face, eyes on the DSI panel)
+# The binary is on userfs, the GPU libraries on vendorfs.
+RequiresMountsFor=/usr/local /vendor
+
+[Service]
+# ROS 2 environment, no ROS log files (see dontfall-app.service).
+ExecStart=/bin/sh -c '. /opt/ros/jazzy/setup.sh && exec /usr/local/bin/dontfall-face --ros-args --disable-external-lib-logs'
+# The panel's DRM driver loads ~11 s into boot; started before it, SDL
+# fails to open the display and this retries.
+Restart=on-failure
+RestartSec=2s
+StartLimitIntervalSec=0
+# Lower priority than the micro-ROS Agent and the app: the face may never
+# take CPU from the path that carries commands to the M4.
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

@@ -1,5 +1,5 @@
-# SDL2 for dontfall-face (docs/face-plan.md): fullscreen on DRM/KMS with
-# OpenGL ES 2.0 from ST's gcnano, no compositor. The default follows the
+# SDL2 for dontfall-face (docs/archive/face-plan.md): fullscreen on
+# DRM/KMS with OpenGL ES 2.0 from ST's gcnano, no compositor. The default follows the
 # distro features (wayland, x11, desktop GL, pulseaudio/pipewire/alsa);
 # none of those are used on the robot's screen. Everything here is for the
 # board only (class-target), not SDL's native/nativesdk variants.

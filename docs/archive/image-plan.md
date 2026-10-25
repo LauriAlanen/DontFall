@@ -125,7 +125,7 @@ rootfs 249 MB, 37 MB RAM after boot. Userspace is now the bulk.
   `df` distro based on `openstlinux` with a trimmed feature list rebuilds
   every package (hours) and must keep `optee`, `usrmerge`, `systemd`.
   Also: getty on tty1 and vconsole setup for a VT nobody types on.
-  If this is ever done, keep what `docs/face-plan.md` needs: the
+  If this is ever done, keep what `docs/archive/face-plan.md` needs: the
   `opengl` distro feature, the GPU (gcnano), libdrm, SDL2 and the
   display/touch kernel modules (DRM/KMS directly, no wayland).
 - **Step 5, Python:** ~108 MB of the rootfs is Python for the `ros2` CLI

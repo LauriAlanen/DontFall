@@ -11,7 +11,7 @@ Update the status as steps land.
 |---|------|--------|
 | 0 | Check the display and touch on the board, no code | done |
 | 1 | GPU on: accept ST's EULA, Vivante driver, `kmscube` on the screen | done |
-| 2 | SDL2 in the build, a new `dontfall-face` program: still eyes from one shader | todo |
+| 2 | SDL2 in the build, a new `dontfall-face` program: still eyes from one shader | done |
 | 3 | Moods and tweens; alive when idle (blinks, glances), CPU/GPU measured | todo |
 | 4 | ROS 2 node: googly eyes driven by the IMU's gravity vector | todo |
 | 5 | Moods from the robot's state (armed, fault, link lost) | todo |
@@ -187,6 +187,26 @@ panel's 50 Hz mode, at ~2% CPU.
   "Open questions").
 - Done when: two eyes are on the screen and quitting the program leaves
   the screen in a sane state.
+
+Result (2026-10-25): `dontfall-face` in DontFall-app (`src/face/`:
+`face.hpp` model, `renderer.*` and `eye_shader.hpp`, `main.cpp`), built
+by the `dontfall-app` recipe, run by hand. Two cyan rounded eyes on the
+panel at ~3% CPU; SIGTERM ends it cleanly. SDL2 needed two fixes in
+`libsdl2_%.bbappend` before it worked with ST's gcnano:
+
+- `SDL_KMSDRM_SHARED=OFF`: SDL dlopen()s GBM by the file name behind
+  `libgbm.so` (`libgbm.so.1.0.0`), which gcnano has only on `/vendor/lib`,
+  so KMS/DRM failed and SDL silently fell back to its offscreen driver
+  ("eglQueryDevicesEXT() failed"). Linked normally, the loader finds it
+  by SONAME.
+- `libudev` as a runtime dependency: SDL dlopen()s it too, and SDL 2.30
+  segfaults on start without it.
+
+SDL's cursor and "Could not restore CRTC" messages in its verbose log
+are harmless (the LTDC has no cursor plane; there was no picture before
+to restore). GLES 2.0 headers come with SDL2; CMake finds `libGLESv2`
+with `find_library` (pkg-config looks under `/usr/local` because the
+recipe's prefix is `/usr/local`).
 
 ## Step 3: moods, tweens, alive when idle
 

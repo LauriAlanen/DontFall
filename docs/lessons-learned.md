@@ -125,6 +125,12 @@ only if it saves the next agent significant work.
   closed (they treat EOF as a key press: "user interrupted!"). Keep
   stdin open: `sleep 30 | kmscube ...`.
 
+- **SDL2 and ST's gcnano:** SDL dlopen()s GBM and libudev. GBM by its
+  file name (`libgbm.so.1.0.0`, only on `/vendor/lib`), so KMS/DRM
+  fails and SDL falls back to "offscreen" (`eglQueryDevicesEXT() failed`);
+  a missing `libudev.so.1` makes it segfault. Both handled in
+  `libsdl2_%.bbappend`. Debug with `SDL_LOGGING="*=verbose"`.
+
 ## Hardware
 
 - **Both cores share the GPIO register banks.** Zephyr's STM32 GPIO driver

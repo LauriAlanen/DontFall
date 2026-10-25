@@ -30,6 +30,8 @@ EXTRA_OECMAKE += "-DBUILD_TESTING=OFF"
 # ament_package module from the native ROS prefix.
 ROS_PREFIX = "/opt/ros/jazzy"
 DEPENDS = "rclcpp diagnostic-msgs ament-cmake-native"
+# dontfall-face: SDL2 (KMS/DRM) and OpenGL ES 2.0 (ST's gcnano)
+DEPENDS += "libsdl2 virtual/libgles2"
 inherit python3native
 export PYTHONPATH = "${STAGING_DIR_NATIVE}${ROS_PREFIX}/lib/${PYTHON_DIR}/site-packages"
 export AMENT_PREFIX_PATH = "${STAGING_DIR_HOST}${ROS_PREFIX};${STAGING_DIR_NATIVE}${ROS_PREFIX}"

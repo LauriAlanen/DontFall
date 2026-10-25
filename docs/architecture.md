@@ -47,7 +47,9 @@ see "Keeping this up to date" at the end.
 
  Planned, not built yet (docs/foc-plan.md, docs/balance-plan.md):
    M4: FOC for the motors and the balance controller, the AS5048A encoder
-   on SPI, SimpleFOCMini drivers (PWM). A7: screen, camera.
+   on SPI, SimpleFOCMini drivers (PWM). A7: camera; the face
+   (dontfall-face: SDL2 on DRM/KMS + GLES 2.0 on the GPU, docs/face-plan.md)
+   runs by hand so far, not yet a ROS 2 node or a service.
 ```
 
 ## The ROS 2 interface of the M4

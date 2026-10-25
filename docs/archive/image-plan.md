@@ -1,8 +1,10 @@
 # Image slimming plan
 
-Working plan for trimming `df-image-minimal` down to what the robot needs.
-KPIs: boot time, A7 CPU/RAM left for ROS and the app, free storage.
-Update the status and numbers as steps land.
+Retired plan (steps 1-2 done, 3-5 not done) for trimming
+`df-image-minimal` down to what the robot needs. KPIs: boot time, A7
+CPU/RAM left for ROS and the app, free storage. Retired on 2026-10-25:
+after step 2 the image is light enough (systemd ~14 s, 37 MB RAM after
+boot, 249 MB rootfs). "Remaining" keeps the ideas if that changes.
 
 How to measure (board on the LAN, `<ip>`):
 
@@ -15,11 +17,11 @@ ssh root@<ip> 'journalctl -b | grep "systemd\[1\]: Startup finished"; df -h /; f
 |---|------|--------|
 | 1 | Drop packagegroup-base-extended, syslog, resize InitRD, ST example DTs, extlinux menu, `quiet` | done |
 | 2 | Install only the kernel modules the board uses | done |
-| 3 | Trim the kernel config (debug, unused drivers) | remaining |
-| 4 | Own distro config instead of `openstlinux-weston` (no wayland/x11/gstreamer/pulseaudio...) | remaining, full rebuild |
-| 5 | Optional: release image without the Python `ros2` CLI | remaining, decide later |
+| 3 | Trim the kernel config (debug, unused drivers) | not done |
+| 4 | Own distro config instead of `openstlinux-weston` (no wayland/x11/gstreamer/pulseaudio...) | not done |
+| 5 | Optional: release image without the Python `ros2` CLI | not done |
 
-Paused after step 2 (2026-10-16); see "Remaining" at the end.
+Paused after step 2 (2026-10-16), retired 2026-10-25; see "Remaining" at the end.
 
 ## Baseline (2026-10-15, before step 1)
 
@@ -121,6 +123,9 @@ rootfs 249 MB, 37 MB RAM after boot. Userspace is now the bulk.
   `df` distro based on `openstlinux` with a trimmed feature list rebuilds
   every package (hours) and must keep `optee`, `usrmerge`, `systemd`.
   Also: getty on tty1 and vconsole setup for a VT nobody types on.
+  If this is ever done, keep what `docs/face-plan.md` needs: the
+  `opengl` distro feature, the GPU (gcnano), libdrm, SDL2 and the
+  display/touch kernel modules (DRM/KMS directly, no wayland).
 - **Step 5, Python:** ~108 MB of the rootfs is Python for the `ros2` CLI
   and launch. Decide whether a release image drops it (C++ nodes only) and
   a dev image keeps it.

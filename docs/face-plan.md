@@ -12,7 +12,7 @@ Update the status as steps land.
 | 0 | Check the display and touch on the board, no code | done |
 | 1 | GPU on: accept ST's EULA, Vivante driver, `kmscube` on the screen | done |
 | 2 | SDL2 in the build, a new `dontfall-face` program: still eyes from one shader | done |
-| 3 | Moods and tweens; alive when idle (blinks, glances), CPU/GPU measured | todo |
+| 3 | Moods and tweens; alive when idle (blinks, glances), CPU/GPU measured | 3a done (moods, tweens, `--demo`) |
 | 4 | ROS 2 node: googly eyes driven by the IMU's gravity vector | todo |
 | 5 | Moods from the robot's state (armed, fault, link lost) | todo |
 | 6 | Touch: poke the eyes | todo |

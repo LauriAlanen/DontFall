@@ -15,7 +15,8 @@ the status as steps land.
 | 1 | Camera as a ROS 2 topic: stock driver, `dontfall-camera.service` | done |
 | 2 | See it on the PC in Foxglove; measure the WiFi link | done |
 | 3 | Calibrate it (checkerboard on the PC), `camera_info` on the board | later (not needed for 4-5) |
-| 4 | PC vision node: a YOLO detector for people and faces | todo |
+| 4a | PC vision node: YOLOX person detector, boxes in Foxglove | done |
+| 4b | Faces in the same node | todo |
 | 5 | The face looks at you (detections from the PC) | todo |
 | 6 | Follow a person, dry run (a suggested `Twist`, never sent to `/cmd_vel`) | todo |
 
@@ -279,6 +280,27 @@ Result (2026-10-26):
   `ImageAnnotations` message.
 - Measure: inference time, end-to-end delay (image stamp to detection
   arriving back on the board).
+- Split in two: 4a people, 4b faces.
+
+Result 4a (2026-10-26): `pc/vision/vision_node.py` (node
+`dontfall_vision`, `pc/ros.sh vision`) with `pc/vision/yolox.py`.
+- Model: YOLOX-Tiny (Megvii's ONNX export, COCO, Apache-2.0, 416x416),
+  pinned by checksum in `pc/Dockerfile`; only the person class is kept.
+  Not Ultralytics YOLO: slightly better, but AGPL and it brings
+  PyTorch; YOLOX needs only ONNX Runtime and OpenCV. On this PC's CPU
+  with the step-0 frame: nano 11 ms, tiny 14 ms, s (640) 52 ms, all
+  finding the person at 0.92.
+- Live: 15 frames/s, ~20 ms per frame (decode + detect). The node keeps
+  only the newest frame (depth 1), so a slow detection skips frames
+  instead of falling behind.
+- Topics: `/vision/people` (`vision_msgs/Detection2DArray`, the frame's
+  header), `/vision/annotations` (`foxglove_msgs/ImageAnnotations`), and
+  `/vision/image/compressed`: the frame it looked at, so Foxglove shows
+  boxes on the right frame and the board sends each frame only once
+  (step 2's budget). The Foxglove panel now shows that topic.
+- `pc/ros.sh` containers now run with `--ipc host`: Fast DDS uses shared
+  memory between processes on one host, and separate containers without
+  a shared `/dev/shm` didn't hear each other (the board did, over UDP).
 
 ## Step 5: the face looks at you
 

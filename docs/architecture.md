@@ -11,6 +11,9 @@ see "Keeping this up to date" at the end.
    ros2 topic/service, teleop_twist_keyboard, PlotJuggler, RViz,
    foxglove_bridge <-> ws://localhost:8765 <-> Foxglove on Windows
    (layout and panels: DontFall-dashboard)
+   pc/vision (pc/ros.sh vision): ROS 2 node dontfall_vision, YOLOX
+   person detector on the camera; publishes /vision/people and
+   republishes the frames for the PC (/vision/image/compressed)
         ^
         | ROS 2 (DDS) over the LAN
         v
@@ -65,8 +68,8 @@ see "Keeping this up to date" at the end.
  Planned, not built yet (docs/foc-plan.md, docs/balance-plan.md,
  docs/camera-plan.md):
    M4: FOC for the motors and the balance controller, the AS5048A encoder
-   on SPI, SimpleFOCMini drivers (PWM). PC: all vision (detectors),
-   sending detections back over ROS 2.
+   on SPI, SimpleFOCMini drivers (PWM). PC: face detection
+   (docs/camera-plan.md).
 ```
 
 ## The ROS 2 interface of the M4
@@ -90,6 +93,17 @@ The node `camera` (gscam, `dontfall-camera.service`, parameters in
 |------|------|-----|---------|
 | `/camera/image_raw/compressed` | `sensor_msgs/CompressedImage` (`jpeg`) | best effort (SensorDataQoS), 15 Hz | the camera's MJPEG frames, 640x480, ~28 kB each, stamped at capture, frame `camera_optical_frame` |
 | `/camera/camera_info` | `sensor_msgs/CameraInfo` | best effort, 15 Hz | lens model; empty until the camera is calibrated (camera plan step 3) |
+
+## The PC vision node's topics
+
+The node `dontfall_vision` (`pc/vision`, runs on the PC only). Nothing on
+the robot depends on it.
+
+| Name | Type | QoS | Purpose |
+|------|------|-----|---------|
+| `/vision/people` | `vision_msgs/Detection2DArray` | reliable, 15 Hz | people in the frame (pixels), with the frame's header and capture stamp |
+| `/vision/annotations` | `foxglove_msgs/ImageAnnotations` | reliable, 15 Hz | the same boxes, drawn by Foxglove |
+| `/vision/image/compressed` | `sensor_msgs/CompressedImage` | best effort, 15 Hz | the frame it looked at, for PC viewers, so the board sends each frame once |
 
 ## Who owns what
 

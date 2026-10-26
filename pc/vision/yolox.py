@@ -13,8 +13,16 @@ STRIDES = (8, 16, 32)
 
 
 class PersonDetector:
-    def __init__(self, model_path, score_threshold=0.4, nms_threshold=0.45):
-        self.session = ort.InferenceSession(model_path, providers=['CPUExecutionProvider'])
+    def __init__(self, model_path, score_threshold=0.4, nms_threshold=0.45, threads=2):
+        # Two threads, no spinning: by default ONNX Runtime uses every core
+        # and its idle threads busy-wait for work, which kept ~7 of 12
+        # cores busy at 15 frames/s. Measured at 15 frames/s (step 4b):
+        # 2 threads 25 ms, 0.6 cores; 4 spinning 14 ms, 1.9 cores.
+        options = ort.SessionOptions()
+        options.intra_op_num_threads = threads
+        options.add_session_config_entry('session.intra_op.allow_spinning', '0')
+        self.session = ort.InferenceSession(model_path, options,
+                                            providers=['CPUExecutionProvider'])
         self.input_name = self.session.get_inputs()[0].name
         _, _, h, w = self.session.get_inputs()[0].shape
         self.input_size = (h, w)

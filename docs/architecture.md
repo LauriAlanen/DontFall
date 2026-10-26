@@ -12,8 +12,8 @@ see "Keeping this up to date" at the end.
    foxglove_bridge <-> ws://localhost:8765 <-> Foxglove on Windows
    (layout and panels: DontFall-dashboard)
    pc/vision (pc/ros.sh vision): ROS 2 node dontfall_vision, YOLOX
-   person detector on the camera; publishes /vision/people and
-   republishes the frames for the PC (/vision/image/compressed)
+   people and YuNet faces on the camera; publishes /vision/people,
+   /vision/faces and the frames for the PC (/vision/image/compressed)
         ^
         | ROS 2 (DDS) over the LAN
         v
@@ -68,8 +68,7 @@ see "Keeping this up to date" at the end.
  Planned, not built yet (docs/foc-plan.md, docs/balance-plan.md,
  docs/camera-plan.md):
    M4: FOC for the motors and the balance controller, the AS5048A encoder
-   on SPI, SimpleFOCMini drivers (PWM). PC: face detection
-   (docs/camera-plan.md).
+   on SPI, SimpleFOCMini drivers (PWM).
 ```
 
 ## The ROS 2 interface of the M4
@@ -102,6 +101,7 @@ the robot depends on it.
 | Name | Type | QoS | Purpose |
 |------|------|-----|---------|
 | `/vision/people` | `vision_msgs/Detection2DArray` | reliable, 15 Hz | people in the frame (pixels), with the frame's header and capture stamp |
+| `/vision/faces` | `vision_msgs/Detection2DArray` | reliable, 15 Hz | faces, the same way |
 | `/vision/annotations` | `foxglove_msgs/ImageAnnotations` | reliable, 15 Hz | the same boxes, drawn by Foxglove |
 | `/vision/image/compressed` | `sensor_msgs/CompressedImage` | best effort, 15 Hz | the frame it looked at, for PC viewers, so the board sends each frame once |
 

@@ -16,7 +16,7 @@ the status as steps land.
 | 2 | See it on the PC in Foxglove; measure the WiFi link | done |
 | 3 | Calibrate it (checkerboard on the PC), `camera_info` on the board | later (not needed for 4-5) |
 | 4a | PC vision node: YOLOX person detector, boxes in Foxglove | done |
-| 4b | Faces in the same node | todo |
+| 4b | Faces in the same node | done |
 | 5 | The face looks at you (detections from the PC) | todo |
 | 6 | Follow a person, dry run (a suggested `Twist`, never sent to `/cmd_vel`) | todo |
 
@@ -301,6 +301,28 @@ Result 4a (2026-10-26): `pc/vision/vision_node.py` (node
 - `pc/ros.sh` containers now run with `--ipc host`: Fast DDS uses shared
   memory between processes on one host, and separate containers without
   a shared `/dev/shm` didn't hear each other (the board did, over UDP).
+
+Result 4b (2026-10-26): `pc/vision/yunet.py`, faces on `/vision/faces`
+(same message, `class_id` `face`) and orange boxes in the annotations.
+- Model: YuNet 2023mar (OpenCV Zoo, MIT, 230 kB) through
+  `cv2.FaceDetectorYN`, pinned to a Hugging Face revision. It needs
+  OpenCV 4.8+, so the container takes `opencv-python-headless` 4.10 from
+  pip instead of Ubuntu's 4.6 (numpy kept below 2, what ROS is built
+  with). The 2022mar model that 4.6 could run is no longer published.
+- Threads: ONNX Runtime and OpenCV both default to a thread pool over
+  every core, and ONNX Runtime's threads spin while idle: the 4a node
+  kept ~7 of 12 cores busy. Now 2 threads each, no spinning. YOLOX-Tiny
+  at camera pace: 2 threads 25 ms / 0.6 cores, 4 spinning 14 ms / 1.9
+  cores, 12 spinning (the old default) 14 ms / ~7 cores. YuNet ~6 ms.
+- Live: 15 frames/s, ~38 ms per frame (decode + people + faces), the
+  container ~0.9 cores.
+- Ctrl-C / `docker stop`: rclpy's signal handlers shut the context
+  down under a running callback (`publisher's context is invalid`); the
+  node now uses Python's own (`SignalHandlerOptions.NO`).
+- GPU: the PC has an AMD Radeon RX 9060 XT. WSL2 passes it through only
+  as D3D12 (`/dev/dxg`); ONNX Runtime's GPU routes there are CUDA
+  (NVIDIA) or AMD ROCm/MIGraphX on WSL, which supports only some Radeon
+  cards. Not needed at 38 ms per frame; revisit for heavier models.
 
 ## Step 5: the face looks at you
 

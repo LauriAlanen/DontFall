@@ -18,7 +18,7 @@ the status as steps land.
 | 4a | PC vision node: YOLOX person detector, boxes in Foxglove | done |
 | 4b | Faces in the same node | done |
 | 5a | The face looks at you (detections from the PC) | done |
-| 5b | Moods when someone appears or nobody is around | todo |
+| 5b | Moods when someone appears or nobody is around | done |
 | 6 | Follow a person, dry run (a suggested `Twist`, never sent to `/cmd_vel`) | todo |
 
 Steps 0-3 are the bring-up every later use needs. Steps 4-6 are one
@@ -355,6 +355,18 @@ the node.
   15% of one core with or without them.
 - `ERROR: Could not restore CRTC` in the face's log at start is older
   than this step (SDL at start-up) and harmless.
+
+Result 5b (2026-10-26): in `mood_picker`, below the robot's own state
+(fault, link lost, an arm or a knock always win):
+- Someone appearing after at least 5 s away: happy for 1.5 s, or
+  surprised if the face was lonely. Shorter gaps are missed detections
+  or a turned head and get no greeting.
+- Disarmed, camera watching, nobody for 60 s: lonely, sleepy (slowly).
+  Sleepy also means link lost, so loneliness only counts while
+  `/vision/faces` arrives (empty arrays too): without the PC the moods
+  are as before.
+- The face's log says what the camera sees: `mood happy (disarmed,
+  someone there)`.
 
 ## Step 6: follow a person, dry run
 

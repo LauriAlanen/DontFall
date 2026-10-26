@@ -14,7 +14,7 @@ the status as steps land.
 | 0 | Check the camera on the board, no code | done |
 | 1 | Camera as a ROS 2 topic: stock driver, `dontfall-camera.service` | done |
 | 2 | See it on the PC in Foxglove; measure the WiFi link | done |
-| 3 | Calibrate it (checkerboard on the PC), `camera_info` on the board | todo |
+| 3 | Calibrate it (checkerboard on the PC), `camera_info` on the board | later (not needed for 4-5) |
 | 4 | PC vision node: a YOLO detector for people and faces | todo |
 | 5 | The face looks at you (detections from the PC) | todo |
 | 6 | Follow a person, dry run (a suggested `Twist`, never sent to `/cmd_vel`) | todo |

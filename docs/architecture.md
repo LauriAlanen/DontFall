@@ -32,8 +32,9 @@ see "Keeping this up to date" at the end.
 |                  |                    | ROS 2 node dontfall_face: eyes   |  |
 |                  |                    | on the DSI panel                 |  |
 |                  |                    | (SDL2 on KMS, GLES 2.0 on GPU),  |  |
-|                  |                    | hears /dontfall_m4/imu and       |  |
-|                  |                    | /diagnostics                     |  |
+|                  |                    | hears /dontfall_m4/imu,          |  |
+|                  |                    | /diagnostics and /vision/faces   |  |
+|                  |                    | (from the PC)                    |  |
 |                  |                    +----------------------------------+  |
 |                  |                    +----------------------------------+  |
 |                  |                    | dontfall-camera (meta-df)        |  |
@@ -101,7 +102,7 @@ the robot depends on it.
 | Name | Type | QoS | Purpose |
 |------|------|-----|---------|
 | `/vision/people` | `vision_msgs/Detection2DArray` | reliable, 15 Hz | people in the frame (pixels), with the frame's header and capture stamp |
-| `/vision/faces` | `vision_msgs/Detection2DArray` | reliable, 15 Hz | faces, the same way |
+| `/vision/faces` | `vision_msgs/Detection2DArray` | reliable, 15 Hz | faces, the same way; `dontfall_face` on the board looks at the biggest |
 | `/vision/annotations` | `foxglove_msgs/ImageAnnotations` | reliable, 15 Hz | the same boxes, drawn by Foxglove |
 | `/vision/image/compressed` | `sensor_msgs/CompressedImage` | best effort, 15 Hz | the frame it looked at, for PC viewers, so the board sends each frame once |
 

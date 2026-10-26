@@ -32,6 +32,8 @@ EXTRA_OECMAKE += "-DBUILD_TESTING=OFF"
 # ament_package module from the native ROS prefix.
 ROS_PREFIX = "/opt/ros/jazzy"
 DEPENDS = "rclcpp diagnostic-msgs sensor-msgs ament-cmake-native"
+# dontfall-face: faces seen by the PC vision node (/vision/faces)
+DEPENDS += "vision-msgs"
 # dontfall-face: SDL2 (KMS/DRM) and OpenGL ES 2.0 (ST's gcnano)
 DEPENDS += "libsdl2 virtual/libgles2"
 inherit python3native

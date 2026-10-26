@@ -17,7 +17,8 @@ the status as steps land.
 | 3 | Calibrate it (checkerboard on the PC), `camera_info` on the board | later (not needed for 4-5) |
 | 4a | PC vision node: YOLOX person detector, boxes in Foxglove | done |
 | 4b | Faces in the same node | done |
-| 5 | The face looks at you (detections from the PC) | todo |
+| 5a | The face looks at you (detections from the PC) | done |
+| 5b | Moods when someone appears or nobody is around | todo |
 | 6 | Follow a person, dry run (a suggested `Twist`, never sent to `/cmd_vel`) | todo |
 
 Steps 0-3 are the bring-up every later use needs. Steps 4-6 are one
@@ -335,6 +336,25 @@ Result 4b (2026-10-26): `pc/vision/yunet.py`, faces on `/vision/faces`
 - Bench friendly and fun: the robot "notices" people with no motors.
 - With the PC off, no detections arrive and the face simply stays in
   its idle moods.
+- Split in two: 5a the gaze, 5b the moods.
+
+Result 5a (2026-10-26): `dontfall_face` subscribes to `/vision/faces`
+(reliable, depth 1). The biggest face, from -1..1 in the image, becomes
+the gaze through `gaze_from_camera()` in `face.hpp`: x mirrored (the
+camera looks the same way as the screen), the image's edges as far as
+the eyes reach. That function is the hook for the camera's real
+mounting. `Idle::follow()` jumps the eyes there only when the face moved
+more than a dead band (no trembling from detection jitter; real eyes
+follow in jumps too) and holds off the idle glances until 1.5 s after
+the face was last seen. Detections older than 500 ms on arrival are
+dropped: their stamp is the frame's capture time on the board's own
+clock, so the age is exact. The image size (640x480) is a parameter of
+the node.
+- Measured on the board (`ros2 topic delay /vision/faces`): detections
+  arrive 121 ms after capture (104-150 ms), 15 Hz. The face process uses
+  15% of one core with or without them.
+- `ERROR: Could not restore CRTC` in the face's log at start is older
+  than this step (SDL at start-up) and harmless.
 
 ## Step 6: follow a person, dry run
 

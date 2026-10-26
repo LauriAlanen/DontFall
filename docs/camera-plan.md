@@ -13,7 +13,7 @@ the status as steps land.
 |---|------|--------|
 | 0 | Check the camera on the board, no code | done |
 | 1 | Camera as a ROS 2 topic: stock driver, `dontfall-camera.service` | done |
-| 2 | See it on the PC in Foxglove; measure the WiFi link | todo |
+| 2 | See it on the PC in Foxglove; measure the WiFi link | done |
 | 3 | Calibrate it (checkerboard on the PC), `camera_info` on the board | todo |
 | 4 | PC vision node: a YOLO detector for people and faces | todo |
 | 5 | The face looks at you (detections from the PC) | todo |
@@ -208,6 +208,52 @@ the real cost of streaming. Lessons:
   and wave a hand), the board's CPU, at two or three resolution/rate
   settings. This link is the pipe to the PC's perception, so its
   numbers decide the settings for steps 4-6.
+
+Result (2026-10-26):
+
+- Foxglove: an Image panel on `/camera/image_raw/compressed` in
+  `DontFall-dashboard/layouts/dontfall.json`, next to the gyro and
+  `cmd_vel` plots.
+- Clocks: the board's is within ~5 ms of NTP, the PC's (WSL2) was
+  ~135 ms fast, so "board stamp vs PC clock" is useless for latency.
+  Measured instead with a throwaway echo: a node on the PC sends each
+  frame's stamp straight back (`/camera/echo`), and `ros2 topic delay`
+  on the board compares it with the board's own clock. That is the
+  round trip a detection will have (image to the PC, small message
+  back), minus the inference time. Ping round trip is ~3 ms.
+- Raw TCP board to PC: ~4.1 MB/s (34 Mbit/s).
+- Every PC process that subscribes gets its own copy of each frame over
+  WiFi (DDS unicast). With three subscribers (echo, `topic hz`,
+  `topic bw`):
+
+  | Setting | fps on the PC | per subscriber | round trip |
+  |---------|---------------|----------------|------------|
+  | 640x480 @15 | 15.0 | 426 kB/s | 54 ms (46-136) |
+  | 640x480 @30 | 20.3 | 560 kB/s | 4.2 s, growing |
+  | 1280x720 @15 | 8.3 | 574 kB/s | 8 s |
+  | 1280x720 @30 | 8.1 | 559 kB/s | 18 s |
+
+  With only the echo subscribing:
+
+  | Setting | round trip |
+  |---------|------------|
+  | 640x480 @30 (~0.8 MB/s) | 68 ms (63-94) |
+  | 1280x720 @15 (~1 MB/s) | 84 ms (78-117) |
+  | 1280x720 @30 (~2 MB/s) | 3-8 s, overloaded |
+
+- So the budget is **~1 MB/s of camera data in total over WiFi**, far
+  below what TCP gets (DDS over UDP, large fragmented messages on WiFi).
+  Above it, frames don't just drop: they queue and the delay grows to
+  seconds. The board's kernel (`sys`) time is 12-30% while sending,
+  growing with the data rate: WiFi costs the A7 more than gscam does.
+- Settings kept: **640x480 @15** (~0.43 MB/s per subscriber, ~55 ms
+  round trip), room for two subscribers.
+- For step 4: Foxglove and the vision node would be two copies (~0.86
+  MB/s, near the limit). Better: one process on the PC subscribes to the
+  board and republishes on a PC-only topic that both use (e.g.
+  `topic_tools relay`), so the board sends each frame once. The
+  standard bigger fix is `rmw_zenoh` (one copy per host through a
+  router); not needed yet.
 
 ## Step 3: calibrate it
 

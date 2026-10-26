@@ -32,7 +32,7 @@ used and to follow industry practice throughout, not hobby shortcuts.
 | Part | Runs on | Responsibility |
 |------|---------|----------------|
 | `DontFall-M4` | Cortex-M4, Zephyr | FOC for both motors, the balance controller, reading the IMU and encoders. Keeps the robot upright on its own. |
-| `DontFall-app` and other A7 software | Cortex-A7, Linux | ROS 2, perception and person-following, screen, high-level behaviour. Serves no web pages: the dashboard runs on the PC. |
+| `DontFall-app` and other A7 software | Cortex-A7, Linux | ROS 2, camera capture, screen, high-level behaviour. Serves no web pages: the dashboard runs on the PC. |
 | `DontFall` | build host | Yocto integration: layers, image, build and deploy scripts. |
 
 Principles:
@@ -48,6 +48,12 @@ Principles:
   is micro-ROS on Zephyr with an RPMsg transport and the micro-ROS Agent on
   the A7, on the one rpmsg channel (`/dev/ttyRPMSG0`). It replaced the
   first PING/PONG line protocol (`docs/archive/failsafe-plan.md` step 6).
+- **No heavy computation on the A7.** Its two cores are kept for the
+  robot's own features and the micro-ROS Agent. Image processing and
+  other heavy perception (person detection, following) run on the PC,
+  which gets compressed camera frames over ROS 2 and sends back
+  detections. Nothing safety-relevant depends on the PC
+  (`docs/camera-plan.md`).
 - **Use standard ROS 2 message types where they fit** (`geometry_msgs/Twist`,
   `sensor_msgs/Imu`, `sensor_msgs/JointState`, diagnostics), so stock
   tooling (`ros2 topic`, rosbag, RViz) works without custom glue. Only
@@ -69,7 +75,8 @@ Principles:
 - **The robot's face:** the DK2's own 480x800 DSI display (MB1407)
   shows googly eyes, drawn on the GPU, that roll with the IMU, react to
   touch and show the robot's state (`docs/archive/face-plan.md`).
-- **On hand, not used yet:** USB camera.
+- **Camera:** a Dell WB3023 USB webcam works on the board (MJPEG up
+  to 2560x1440); plan in `docs/camera-plan.md`.
 - **Coming soon:** one SimpleFOC board and one BLDC motor, so the first
   motor work is a single motor on the bench.
 - **ROS 2 distribution:** Jazzy (LTS), from meta-ros on scarthgap.

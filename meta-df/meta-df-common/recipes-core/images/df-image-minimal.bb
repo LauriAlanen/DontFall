@@ -56,3 +56,7 @@ IMAGE_INSTALL += "${GPU_IMAGE_INSTALL}"
 IMAGE_INSTALL += "ros-core demo-nodes-cpp micro-ros-agent"
 # ... started whenever the M4's micro-ROS tty (/dev/ttyRPMSG0) exists
 IMAGE_INSTALL += "dontfall-uros-agent"
+
+# Camera debugging (docs/camera-plan.md): v4l2-ctl to list the USB
+# camera's formats and controls and grab test frames.
+IMAGE_INSTALL += "v4l-utils"

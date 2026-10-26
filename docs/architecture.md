@@ -54,9 +54,12 @@ see "Keeping this up to date" at the end.
                                                          |
                                        LSM6DSOX IMU (Arduino Modulino Movement)
 
- Planned, not built yet (docs/foc-plan.md, docs/balance-plan.md):
+ Planned, not built yet (docs/foc-plan.md, docs/balance-plan.md,
+ docs/camera-plan.md):
    M4: FOC for the motors and the balance controller, the AS5048A encoder
-   on SPI, SimpleFOCMini drivers (PWM). A7: camera.
+   on SPI, SimpleFOCMini drivers (PWM). A7: USB camera driver, forwarding
+   compressed frames only. PC: all vision (detectors), sending
+   detections back over ROS 2.
 ```
 
 ## The ROS 2 interface of the M4

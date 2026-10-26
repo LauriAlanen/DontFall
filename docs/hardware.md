@@ -179,13 +179,28 @@ The DK2's own MB1407 board, checked in face plan step 0
 | Console | none on the panel: no fbdev emulation, the VT console is the dummy device, so the getty on tty1 draws nothing |
 | GPU | Vivante GC400 rev 4652 at `59000000.gpu`, ST's `galcore` driver (`/dev/galcore`), OpenGL ES 2.0 + EGL 1.5 + GBM from `gcnano-userland` on `/vendor/lib`; reserves 64 MB of RAM at 0xd4000000 |
 
+## Camera
+
+Checked in camera plan step 0 (`docs/camera-plan.md`).
+
+| What | Value |
+|------|-------|
+| Camera | Dell Webcam WB3023, USB id 413c:c03e (Wistron), UVC 1.00, USB 2.0 high speed |
+| Port | DK2 USB host, behind the on-board hub (0424:2514), bus path `usb-5800d000.usb-1.2` |
+| Devices | `/dev/video0` capture, `/dev/video1` metadata, `/dev/media0` |
+| Formats | MJPG: 640x480 @30, 1280x720 @60/30/24, 1920x1080 @30/24, 2560x1440 @30/24; YUYV and NV12: 640x360 and 640x480 @30 only |
+| MJPEG frame size (this room) | 640x480 ~27 kB (~0.8 MB/s at 30 fps), 1280x720 ~68 kB (~2 MB/s at 30 fps) |
+| Board CPU while streaming MJPEG to a file | ~0% (`v4l2-ctl`, no decode) |
+| Controls | autofocus (continuous), auto exposure, white balance, pan/tilt/zoom (digital), `power_line_frequency` defaults to 60 Hz: set 50 Hz (`1`) in Finland against flicker |
+| Probe warning | `Failed to set UVC probe control : -32 (exp. 26)` at boot; harmless, streaming works |
+
 ## Parts
 
 | Part | Status |
 |------|--------|
 | STM32MP157C-DK2 | on hand |
 | MB1407 DSI display, 480x800 (comes with the DK2) | on hand, the robot's screen |
-| USB camera | on hand, not used yet |
+| Dell Webcam WB3023 (USB camera, 2K, UVC) | on hand, works on the board (camera plan step 0) |
 | Arduino Modulino Movement (ABX00101), ST LSM6DSOX 6-axis IMU; SPI clock/data-in are the SDA/SCL pins (not the 1x10 header's SCx/SDx), SDO/CS/INT on the 1x10 header, SPI needs the SA0 jumper cut and the CS-to-3V3 bridge removed, no I2C pull-ups fitted. Details: docs/archive/imu-plan.md | on hand, modded for SPI, works |
 | SimpleFOCMini v2.3 (DRV8316, 5-35 V, 3x low-side current sense), x2-3 | planned, after the IMU works |
 | iPower GM4108H-120T gimbal motor with AS5048A encoder (SPI, 14-bit), x1 | planned, after the IMU works |

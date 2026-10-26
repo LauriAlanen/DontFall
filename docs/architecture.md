@@ -32,6 +32,14 @@ see "Keeping this up to date" at the end.
 |                  |                    | hears /dontfall_m4/imu and       |  |
 |                  |                    | /diagnostics                     |  |
 |                  |                    +----------------------------------+  |
+|                  |                    +----------------------------------+  |
+|                  |                    | dontfall-camera (meta-df)        |  |
+|                  |                    | dontfall-camera.service, Nice 10,|  |
+|                  |                    | CPUQuota 25%. gscam: the USB     |  |
+|                  |                    | camera's MJPEG (/dev/camera),    |  |
+|                  |                    | never decoded, 640x480 @15 on    |  |
+|                  |                    | /camera/image_raw/compressed     |  |
+|                  |                    +----------------------------------+  |
 |                  |                                                          |
 |  remoteproc (dontfall-m4.service) loads /lib/firmware/dontfall-m4.elf       |
 |  ================= OpenAMP: RPMsg over shared memory ======================  |
@@ -57,9 +65,8 @@ see "Keeping this up to date" at the end.
  Planned, not built yet (docs/foc-plan.md, docs/balance-plan.md,
  docs/camera-plan.md):
    M4: FOC for the motors and the balance controller, the AS5048A encoder
-   on SPI, SimpleFOCMini drivers (PWM). A7: USB camera driver, forwarding
-   compressed frames only. PC: all vision (detectors), sending
-   detections back over ROS 2.
+   on SPI, SimpleFOCMini drivers (PWM). PC: all vision (detectors),
+   sending detections back over ROS 2.
 ```
 
 ## The ROS 2 interface of the M4
@@ -74,14 +81,26 @@ the A7 and the M4's control code.
 | `/dontfall_m4/arm` | service, `std_srvs/SetBool` | reliable | A7 -> M4 | arm (true) or disarm (false) |
 | `/cmd_vel` | subscription, `geometry_msgs/Twist` | best effort | A7 -> M4 | speed setpoint, zeroed after a timeout |
 
+## The camera's topics
+
+The node `camera` (gscam, `dontfall-camera.service`, parameters in
+`/etc/dontfall/camera.yaml`; `docs/camera-plan.md`).
+
+| Name | Type | QoS | Purpose |
+|------|------|-----|---------|
+| `/camera/image_raw/compressed` | `sensor_msgs/CompressedImage` (`jpeg`) | best effort (SensorDataQoS), 15 Hz | the camera's MJPEG frames, 640x480, ~28 kB each, stamped at capture, frame `camera_optical_frame` |
+| `/camera/camera_info` | `sensor_msgs/CameraInfo` | best effort, 15 Hz | lens model; empty until the camera is calibrated (camera plan step 3) |
+
 ## Who owns what
 
 - **M4:** everything timing critical and every safety decision: the IMU,
   the supervisor (armed or not), the command timeout, the watchdog, and
   later the motors and balancing. It must stay safe with the A7 dead.
 - **A7:** the micro-ROS Agent, the app (ROS 2 node `dontfall_app`), the face
-  (ROS 2 node `dontfall_face`, only listens), and later everything
-  high level. It only sends commands; it never closes a fast loop.
+  (ROS 2 node `dontfall_face`, only listens), the camera (node `camera`,
+  only forwards the camera's own JPEGs), and later everything high
+  level. It only sends commands; it never closes a fast loop, and does
+  no heavy computation (image processing runs on the PC).
 - **PC (`DontFall-dashboard`, `pc/` here):** watching and commanding
   over ROS 2 (Foxglove, PlotJuggler, teleop). A commander like any other;
   nothing on the robot depends on it.

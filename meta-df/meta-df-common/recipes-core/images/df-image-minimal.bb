@@ -60,3 +60,9 @@ IMAGE_INSTALL += "dontfall-uros-agent"
 # Camera debugging (docs/camera-plan.md): v4l2-ctl to list the USB
 # camera's formats and controls and grab test frames.
 IMAGE_INSTALL += "v4l-utils"
+# USB camera: gscam publishes its MJPEG frames on /camera/image_raw/compressed
+IMAGE_INSTALL += "dontfall-camera"
+# gscam needs gstreamer1.0-plugins-base, which recommends every base
+# plugin (ALSA, Ogg, Theora, Vorbis, audio, ...); the camera pipeline uses
+# only videorate (dontfall-camera's RDEPENDS).
+BAD_RECOMMENDATIONS += "gstreamer1.0-plugins-base-meta"

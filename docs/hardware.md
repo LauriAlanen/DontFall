@@ -187,7 +187,7 @@ Checked in camera plan step 0 (`docs/camera-plan.md`).
 |------|-------|
 | Camera | Dell Webcam WB3023, USB id 413c:c03e (Wistron), UVC 1.00, USB 2.0 high speed |
 | Port | DK2 USB host, behind the on-board hub (0424:2514), bus path `usb-5800d000.usb-1.2` |
-| Devices | `/dev/video0` capture, `/dev/video1` metadata, `/dev/media0` |
+| Devices | `/dev/video0` capture, `/dev/video1` metadata, `/dev/media0`; `/dev/camera` links to the capture node and has a systemd unit `dev-camera.device` (udev rule `70-dontfall-camera.rules`, any UVC camera) |
 | Formats | MJPG: 640x480 @30, 1280x720 @60/30/24, 1920x1080 @30/24, 2560x1440 @30/24; YUYV and NV12: 640x360 and 640x480 @30 only |
 | MJPEG frame size (this room) | 640x480 ~27 kB (~0.8 MB/s at 30 fps), 1280x720 ~68 kB (~2 MB/s at 30 fps) |
 | Board CPU while streaming MJPEG to a file | ~0% (`v4l2-ctl`, no decode) |

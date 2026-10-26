@@ -33,6 +33,13 @@ only if it saves the next agent significant work.
 - **Never hand-write patches.** Edit the unpacked source under git and use
   `git format-patch`/`git diff`; hand-made patches failed to apply.
 
+- **A meta-ros package can pull in a whole desktop.** `cv-bridge` (and so
+  `gscam`) RDEPENDS on the `opencv` meta package: all OpenCV modules,
+  GTK3, python3-opencv (+80 MB). Check the image manifest after adding a
+  ROS package; trim with a `RDEPENDS:remove` bbappend
+  (`recipes-ros/cv-bridge`) or `BAD_RECOMMENDATIONS` for `*-meta`
+  plugin packages, then list the plugins actually used.
+
 - **U-Boot extlinux `TIMEOUT 0` can hang the boot.** Any `MENU` line in
   extlinux.conf (ST adds `MENU BACKGROUND` with the `splashscreen` machine
   feature) turns on U-Boot's prompt, and timeout 0 then waits forever at

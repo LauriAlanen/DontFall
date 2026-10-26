@@ -12,7 +12,7 @@ the status as steps land.
 | # | Step | Status |
 |---|------|--------|
 | 0 | Check the camera on the board, no code | done |
-| 1 | Camera as a ROS 2 topic: stock driver, `dontfall-camera.service` | todo |
+| 1 | Camera as a ROS 2 topic: stock driver, `dontfall-camera.service` | done |
 | 2 | See it on the PC in Foxglove; measure the WiFi link | todo |
 | 3 | Calibrate it (checkerboard on the PC), `camera_info` on the board | todo |
 | 4 | PC vision node: a YOLO detector for people and faces | todo |
@@ -167,7 +167,8 @@ Result (2026-10-26): Dell Webcam WB3023 on `/dev/video0`, found by
 ## Step 1: camera as a ROS 2 topic
 
 - MJPEG passthrough (step 0: the camera has it): try `gscam`, then
-  `camera-ros`. Start at 640x480 @15 fps.
+  `camera-ros`. Start at 640x480 @15 fps. The camera service is niced
+  and capped (`CPUQuota=`).
 - Build it into the image (parse check first), run it by hand:
   `ros2 topic hz`, `ros2 topic echo --once .../camera_info`.
 - Measure the board's CPU (`top`) and RAM with and without the camera.
@@ -175,6 +176,29 @@ Result (2026-10-26): Dell Webcam WB3023 on `/dev/video0`, found by
   below the Agent, restarted on failure, bound to `/dev/video0` (like
   the Agent is to its tty).
 - Update `docs/architecture.md` (a new process and topics).
+
+Result (2026-10-26): `gscam` (meta-ros) with the pipeline `v4l2src
+device=/dev/camera ! image/jpeg,640x480,30/1 ! videorate max-rate=15`
+publishes the camera's JPEGs unchanged on `/camera/image_raw/compressed`
+(~28 kB, 15.0 fps measured on the PC, ~420 kB/s). New recipe
+`dontfall-camera`: the service, `/etc/dontfall/camera.yaml`, and a udev
+rule for `/dev/camera` and its systemd device unit (udev doesn't tag
+video devices for systemd on its own); the service starts when the
+camera appears. On the board: gscam ~3% CPU and 26 MB RSS; while the PC
+receives, kernel time goes from ~1% to ~13% (the WiFi driver sending),
+the real cost of streaming. Lessons:
+- gscam needs `cv_bridge`, whose package asks for the `opencv` meta
+  package: every OpenCV module, GTK3, python3-opencv. A `cv-bridge`
+  bbappend drops it (only core, imgproc and imgcodecs are linked), and
+  `BAD_RECOMMENDATIONS` drops `gstreamer1.0-plugins-base-meta`; the image
+  went from 777 packages / 397 MB back to 598 / 316 MB.
+- Without that meta package, gscam's `appsink` must be listed
+  (`gstreamer1.0-plugins-base-app`), or the pipeline fails with
+  `gst_bin_add() failed`.
+- `videorate drop-only=true ! image/jpeg,framerate=15/1` still gave
+  30 fps; `videorate max-rate=15` works.
+- gscam logs a missing calibration file (`/camera_info/dell_wb3023.yaml`)
+  until step 3 sets `camera_info_url`.
 
 ## Step 2: see it on the PC, measure the link
 

@@ -1,0 +1,5 @@
+# The USB camera's capture node (index 0; index 1 is UVC metadata) gets a
+# stable name, /dev/camera, whatever video number the kernel gives it, and
+# a systemd device unit (dev-camera.device) that dontfall-camera.service is
+# bound to.
+SUBSYSTEM=="video4linux", KERNEL=="video*", ATTR{index}=="0", DRIVERS=="uvcvideo", SYMLINK+="camera", TAG+="systemd"

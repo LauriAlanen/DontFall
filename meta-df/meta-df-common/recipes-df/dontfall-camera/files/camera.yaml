@@ -1,0 +1,24 @@
+# gscam parameters for the USB camera (Dell WB3023, docs/hardware.md
+# "Camera"). Topics: /camera/image_raw/compressed, /camera/camera_info.
+/**:
+  ros__parameters:
+    # The camera's MJPEG straight through, never decoded: 640x480 is
+    # MJPEG-only at 30 fps, videorate drops every other frame for 15 fps
+    # (max-rate; a framerate=15/1 caps filter after it was ignored).
+    # power_line_frequency 1 = 50 Hz mains (the default 60 Hz flickers).
+    gscam_config: >-
+      v4l2src device=/dev/camera do-timestamp=true
+      extra-controls="c,power_line_frequency=1"
+      ! image/jpeg,width=640,height=480,framerate=30/1
+      ! videorate max-rate=15
+    image_encoding: jpeg
+    camera_name: dell_wb3023
+    # REP 103 name for the frame of the image (z forward, x right, y down)
+    frame_id: camera_optical_frame
+    # Stamp = capture time from the pipeline, not publish time
+    use_gst_timestamps: true
+    # Publish each frame as soon as it arrives, don't wait on the clock
+    sync_sink: false
+    # Best effort, history 5 (SensorDataQoS): a lost frame is skipped,
+    # never resent late
+    use_sensor_data_qos: true

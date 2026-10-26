@@ -1,0 +1,21 @@
+# gscam on the USB camera (camera.yaml). Bound to the camera, not to boot:
+# it starts when /dev/camera appears (udev rule) and stops when it is
+# unplugged.
+[Unit]
+Description=DontFall camera (gscam, MJPEG passthrough on /dev/camera)
+BindsTo=dev-camera.device
+After=dev-camera.device
+
+[Service]
+# ROS 2 environment, no ROS log files (see dontfall-app.service).
+ExecStart=/bin/sh -c '. /opt/ros/jazzy/setup.sh && exec /opt/ros/jazzy/lib/gscam/gscam_node --ros-args -r __node:=camera --params-file /etc/dontfall/camera.yaml --disable-external-lib-logs'
+Restart=on-failure
+RestartSec=2s
+# Lower priority than the micro-ROS Agent and the app, like the face, and
+# a hard cap: the camera only moves bytes (~3% CPU at 15 fps), so if it
+# ever needs more, something is wrong and it must not take the A7 with it.
+Nice=10
+CPUQuota=25%
+
+[Install]
+WantedBy=dev-camera.device

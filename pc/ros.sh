@@ -10,6 +10,8 @@
 #                                Foxglove/Lichtblick (docs/archive/dashboard-plan.md)
 #   pc/ros.sh vision             person detector on the camera (pc/vision,
 #                                docs/camera-plan.md step 4)
+#   pc/ros.sh follow             suggests how to follow a person, dry run:
+#                                /follow/cmd_vel, never /cmd_vel (step 6)
 #   pc/ros.sh ros2 topic hz /dontfall_m4/imu
 #
 # Builds the image (pc/Dockerfile) on first use; after changing the
@@ -38,6 +40,8 @@ case "${1:-}" in
     bridge)      shift; set -- ros2 launch foxglove_bridge foxglove_bridge_launch.xml "$@" ;;
     vision)      shift; args+=(-v "$DIR/vision:/vision:ro")
                  set -- python3 /vision/vision_node.py "$@" ;;
+    follow)      shift; args+=(-v "$DIR/vision:/vision:ro")
+                 set -- python3 /vision/follow_node.py "$@" ;;
 esac
 
 # --init: ROS tools as PID 1 ignore SIGTERM/Ctrl-C. The ros2 daemon is

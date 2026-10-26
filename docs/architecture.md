@@ -14,6 +14,9 @@ see "Keeping this up to date" at the end.
    pc/vision (pc/ros.sh vision): ROS 2 node dontfall_vision, YOLOX
    people and YuNet faces on the camera; publishes /vision/people,
    /vision/faces and the frames for the PC (/vision/image/compressed)
+   pc/vision (pc/ros.sh follow): ROS 2 node dontfall_follow, dry run:
+   /vision/people -> a suggested Twist on /follow/cmd_vel (never
+   /cmd_vel)
         ^
         | ROS 2 (DDS) over the LAN
         v
@@ -94,10 +97,10 @@ The node `camera` (gscam, `dontfall-camera.service`, parameters in
 | `/camera/image_raw/compressed` | `sensor_msgs/CompressedImage` (`jpeg`) | best effort (SensorDataQoS), 15 Hz | the camera's MJPEG frames, 640x480, ~28 kB each, stamped at capture, frame `camera_optical_frame` |
 | `/camera/camera_info` | `sensor_msgs/CameraInfo` | best effort, 15 Hz | lens model; empty until the camera is calibrated (camera plan step 3) |
 
-## The PC vision node's topics
+## The PC vision nodes' topics
 
-The node `dontfall_vision` (`pc/vision`, runs on the PC only). Nothing on
-the robot depends on it.
+The nodes `dontfall_vision` and `dontfall_follow` (`pc/vision`, run on
+the PC only). Nothing on the robot depends on them.
 
 | Name | Type | QoS | Purpose |
 |------|------|-----|---------|
@@ -105,6 +108,8 @@ the robot depends on it.
 | `/vision/faces` | `vision_msgs/Detection2DArray` | reliable, 15 Hz | faces, the same way; `dontfall_face` on the board looks at the biggest |
 | `/vision/annotations` | `foxglove_msgs/ImageAnnotations` | reliable, 15 Hz | the same boxes, drawn by Foxglove |
 | `/vision/image/compressed` | `sensor_msgs/CompressedImage` | best effort, 15 Hz | the frame it looked at, for PC viewers, so the board sends each frame once |
+| `/follow/cmd_vel` | `geometry_msgs/Twist` | reliable, 15 Hz | from `dontfall_follow`: how the robot would move to follow the person; nothing uses it yet |
+| `/follow/annotations` | `foxglove_msgs/ImageAnnotations` | reliable, 15 Hz | the followed person, for Foxglove |
 
 ## Who owns what
 

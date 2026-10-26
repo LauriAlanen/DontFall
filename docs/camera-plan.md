@@ -19,7 +19,7 @@ the status as steps land.
 | 4b | Faces in the same node | done |
 | 5a | The face looks at you (detections from the PC) | done |
 | 5b | Moods when someone appears or nobody is around | done |
-| 6 | Follow a person, dry run (a suggested `Twist`, never sent to `/cmd_vel`) | todo |
+| 6 | Follow a person, dry run (a suggested `Twist`, never sent to `/cmd_vel`) | done |
 
 Steps 0-3 are the bring-up every later use needs. Steps 4-6 are one
 path through the ideas below; any of the side quests can go in between.
@@ -379,6 +379,27 @@ Result 5b (2026-10-26): in `mood_picker`, below the robot's own state
 - When the robot exists: a `twist_mux` (stock ROS 2) picks between
   teleop and follow by priority, and the M4's supervisor and command
   timeout stay the safety net, as for any other commander.
+
+Result (2026-10-26): `pc/vision/follow.py` (the maths, no ROS) and
+`pc/vision/follow_node.py` (node `dontfall_follow`, `pc/ros.sh follow`).
+- Target: the person nearest the last target (centre within 0.4 image
+  units), else the biggest. Turn: the person's offset from the middle,
+  dead band 0.1, 0.8 rad/s per half-width, at most 0.5 rad/s, right of
+  centre = turn right (negative `angular.z`). Distance: the box height
+  against a target of 0.6 of the image, dead band 0.05, at most 0.2 m/s.
+  Both start from zero at the dead band's edge and are smoothed (each
+  frame 40% of the way). All of it is parameters of the node.
+- People seen but nobody to follow: the suggestion goes to zero.
+  Detections stopped: nothing is published; a later user of
+  `/follow/cmd_vel` must time out, like the M4 does on `/cmd_vel`.
+- No age check by stamp here: the stamps are the board's clock and the
+  PC's clock is off (step 2). It acts on each detection as it arrives.
+- Seen at the desk: someone right of centre, box 95% of the image
+  height: turn -0.09 rad/s (ramping), speed -0.17 m/s (back up), 14 Hz.
+  The 0.6 target height is a guess: on the bench the camera sees people
+  from the waist up.
+- Foxglove: the suggestion in the cmd_vel plot, the followed person as a
+  blue box with a line from the middle (`/follow/annotations`).
 
 ## Side quests (any time after step 2)
 

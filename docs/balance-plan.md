@@ -13,7 +13,7 @@ the room in `docs/hardware.md`, "M4 memory budget", for the M4 step.
 | # | Step | Status |
 |---|------|--------|
 | 1 | Plant model and simulator on the host, tests of the model itself | done |
-| 2 | LQR gains from a small Python script | todo |
+| 2 | LQR gains from a small Python script | done |
 | 3 | Controller as plain C, closed-loop tests against the simulator | todo |
 | 4 | Robustness: wrong parameters, noise, delay, limits | todo |
 | 5 | Controller on the M4 with the real IMU, no motor | todo |
@@ -71,21 +71,30 @@ Done: `tests/balance/` in DontFall-M4 (suite `dontfall.balance`).
 
 ## Step 2: LQR gains
 
-- Linearise the model about upright (sin θ ≈ θ) into ẋ = A x + B τ.
-- Full-state feedback τ = -(k1 θ + k2 θ̇ + k3 ω): the standard way for
-  this robot. LQR picks k from weights on the states and on torque,
-  which is easier to reason about than tuning three gains by hand. The
-  ω term matters: without it the wheel spins up slowly until the motor
-  runs out of speed.
-- A small Python script (numpy/scipy, `scipy.linalg.solve_continuous_are`,
-  or `python-control`), run in the M4 container. It prints k for given
-  parameters; the gains go into the C code as numbers, with the script
-  as their source. Discretise for the loop rate (or check the
-  continuous gains are fine at 850 Hz).
-- PID on θ alone is the hobby alternative; worth trying in the
-  simulator to see why the wheel speed term is needed.
-- Done when: the script's closed-loop poles are stable and the gains
-  are checked in.
+Done: `tests/balance/lqr.py` in DontFall-M4 writes
+`app/src/balance_gains.h`.
+
+- The model linearised about upright (sin θ ≈ θ) into ẋ = A x + B τ,
+  x = (θ, θ̇, ω): open-loop poles 0 and ±8.15 /s, controllable.
+- Full-state feedback τ = -(k1 θ + k2 θ̇ + k3 ω), the standard way for
+  this robot. The ω term matters: without it the wheel spins up slowly
+  until the motor runs out of speed.
+- Discrete LQR (zero-order hold at 850 Hz, `solve_discrete_are`), so
+  the sample and hold is part of the design. The continuous gains differ
+  by under 1%: 850 Hz is fast for this robot.
+- Weights by Bryson's rule (the largest θ, θ̇, ω and τ we accept): 5°,
+  2 rad/s, 30 rad/s and a quarter of the torque limit. 2° with the full
+  limit asked for 3x the limit on a 5° recovery.
+- Result with the guessed parameters: k = (-2.07, -0.248, -0.00165),
+  closed-loop poles -9.0 ± 2.9j and -2.3 /s. From 5° the linear model
+  peaks at 181 mN m (limit 200) and 21 rad/s on the wheel, is under
+  0.5° after 0.23 s, and overshoots to -1° while it spins the wheel back
+  down. `lqr.py --plot` shows it.
+- Runs on the PC (numpy, scipy), not in the M4 container, which has
+  neither; like `plot.py`. The parameters are a copy of `plant_guess`;
+  keep them in step.
+- Left for step 3: PID on θ alone in the simulator, to see the wheel
+  spin up without the ω term.
 
 ## Step 3: controller and closed-loop tests
 
@@ -142,6 +151,9 @@ before it falls.
   with LD5/LD6; who owns them is not checked yet.
 - Whether arming needs more than one ROS call (e.g. hold-to-arm, or arm
   only from the web UI later; from the failsafe plan).
+- The GM4108H's top speed at the supply voltage: a 5° recovery already
+  needs ~21 rad/s on the wheel with the guessed sizes, and a gimbal
+  motor is slow. A heavier wheel needs less speed.
 - Loop rate: every IMU sample (850 Hz) or every second one. Decide in
   step 5 from the measured time.
 - Kalman filter instead of the complementary filter, if step 4 shows the

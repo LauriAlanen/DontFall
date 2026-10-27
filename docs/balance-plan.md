@@ -12,7 +12,7 @@ the room in `docs/hardware.md`, "M4 memory budget", for the M4 step.
 
 | # | Step | Status |
 |---|------|--------|
-| 1 | Plant model and simulator on the host, tests of the model itself | todo |
+| 1 | Plant model and simulator on the host, tests of the model itself | done |
 | 2 | LQR gains from a small Python script | todo |
 | 3 | Controller as plain C, closed-loop tests against the simulator | todo |
 | 4 | Robustness: wrong parameters, noise, delay, limits | todo |
@@ -49,17 +49,25 @@ datasheet.
 
 ## Step 1: simulator
 
-- Plain C under `tests/` (it's test code, never in the firmware): the
-  equations above, integrated with small fixed steps (e.g. 1 kHz, RK4
-  or semi-implicit Euler), with the controller called at the IMU rate
-  (850 Hz, measured, imu-plan step 3).
-- Tests of the model, so later tests stand on something: with no torque
-  and a small start angle it falls like e^(t/τ) with
-  τ = sqrt((I_b + m l²) / (m g l)); with gravity off, total angular
-  momentum stays constant whatever the torque.
-- A way to look at a run: write a CSV from a test (temporary, off by
-  default) and plot it on the PC.
-- Done when: both tests pass and a plot of a fall looks right.
+Done: `tests/balance/` in DontFall-M4 (suite `dontfall.balance`).
+
+- `src/plant.c`/`.h`, plain C, test code only: the equations above,
+  RK4, with the torque held for one control period (1/850 s, the
+  measured IMU rate, imu-plan step 3) and the plant stepped 4 times in
+  it. The parameters are guesses in `plant_guess` (0.6 kg, centre of
+  mass at 12 cm, a 150 g ring of 6 cm radius as the wheel, 0.2 N m as a
+  placeholder torque limit), which give a fall time constant
+  T = sqrt((I_b + m l²) / (m g l)) = 0.12 s.
+- Tests of the model, so later tests stand on something: from rest at
+  1 mrad it follows θ0 cosh(t/T) to 0.2% for 3 T; with gravity off the
+  angular momentum about the pivot stays constant to 0.1% under a
+  swinging full torque. Both fail on a 10% wrong gravity term or a
+  flipped wheel sign.
+- To look at a run: `scripts/test.sh -s dontfall.balance
+  -x=BALANCE_CSV=1` prints `csv,...` lines into the twister log, and
+  `tests/balance/plot.py` (on the PC, matplotlib) plots them. From 2°
+  it lies down in 0.56 s at 660°/s, as energy conservation predicts,
+  while the wheel stays still in absolute terms (ω = -θ̇).
 
 ## Step 2: LQR gains
 

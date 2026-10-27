@@ -2,7 +2,7 @@ SUMMARY = "Camera service for DontFall"
 DESCRIPTION = "Runs gscam on the USB camera whenever it is plugged in: the \
 camera's own MJPEG frames are published unchanged as \
 sensor_msgs/CompressedImage, so the A7 never decodes or encodes an image \
-(docs/camera-plan.md)."
+(docs/archive/camera-plan.md)."
 LICENSE = "CLOSED"
 
 SRC_URI = "file://dontfall-camera.service \

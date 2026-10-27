@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ros-jazzy-teleop-twist-keyboard \
     && rm -rf /var/lib/apt/lists/*
 
-# Vision on the PC (pc/vision, docs/camera-plan.md step 4): OpenCV to
+# Vision on the PC (pc/vision, docs/archive/camera-plan.md step 4): OpenCV to
 # decode the camera's JPEGs and run YuNet, ONNX Runtime to run YOLOX, and
 # the message types it publishes (vision_msgs, Foxglove's
 # ImageAnnotations). OpenCV from pip, not Ubuntu's 4.6: the current YuNet

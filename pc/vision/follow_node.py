@@ -1,4 +1,4 @@
-"""DontFall person following on the PC, dry run (docs/camera-plan.md step 6).
+"""DontFall person following on the PC, dry run (docs/archive/camera-plan.md step 6).
 
 Listens to /vision/people and suggests how the robot should move to follow
 one person:

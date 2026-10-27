@@ -9,7 +9,7 @@
 #   pc/ros.sh bridge             foxglove_bridge on ws://localhost:8765 for
 #                                Foxglove/Lichtblick (docs/archive/dashboard-plan.md)
 #   pc/ros.sh vision             person detector on the camera (pc/vision,
-#                                docs/camera-plan.md step 4)
+#                                docs/archive/camera-plan.md step 4)
 #   pc/ros.sh follow             suggests how to follow a person, dry run:
 #                                /follow/cmd_vel, never /cmd_vel (step 6)
 #   pc/ros.sh ros2 topic hz /dontfall_m4/imu

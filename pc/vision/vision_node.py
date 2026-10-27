@@ -1,4 +1,4 @@
-"""DontFall vision on the PC (docs/camera-plan.md step 4).
+"""DontFall vision on the PC (docs/archive/camera-plan.md step 4).
 
 Subscribes to the board's camera once, finds people with YOLOX and faces
 with YuNet, and publishes:

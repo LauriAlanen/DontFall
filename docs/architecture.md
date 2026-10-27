@@ -70,7 +70,7 @@ see "Keeping this up to date" at the end.
                                        LSM6DSOX IMU (Arduino Modulino Movement)
 
  Planned, not built yet (docs/foc-plan.md, docs/balance-plan.md,
- docs/camera-plan.md):
+ docs/archive/camera-plan.md):
    M4: FOC for the motors and the balance controller, the AS5048A encoder
    on SPI, SimpleFOCMini drivers (PWM).
 ```
@@ -90,7 +90,7 @@ the A7 and the M4's control code.
 ## The camera's topics
 
 The node `camera` (gscam, `dontfall-camera.service`, parameters in
-`/etc/dontfall/camera.yaml`; `docs/camera-plan.md`).
+`/etc/dontfall/camera.yaml`; `docs/archive/camera-plan.md`).
 
 | Name | Type | QoS | Purpose |
 |------|------|-----|---------|

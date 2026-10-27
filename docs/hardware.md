@@ -181,7 +181,7 @@ The DK2's own MB1407 board, checked in face plan step 0
 
 ## Camera
 
-Checked in camera plan step 0 (`docs/camera-plan.md`).
+Checked in camera plan step 0 (`docs/archive/camera-plan.md`).
 
 | What | Value |
 |------|-------|

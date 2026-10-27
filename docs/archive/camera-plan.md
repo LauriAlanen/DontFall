@@ -1,13 +1,15 @@
 # Camera plan
 
-Working plan for the USB camera: bring it up on the A7, put it on the
+Finished plan (steps 0-2 and 4-6 done, 2026-10-27; step 3 left for
+later, it is only needed for AprilTags and other 3D work) for the USB
+camera: bring it up on the A7, put it on the
 ROS 2 graph with stock tooling, see it on the PC, and then give it jobs.
 The A7 only captures and forwards images; all perception runs on the
 PC, so the A7 keeps its CPU for the robot's own features. The first
 jobs need no robot (the face looks at you); the
 long-term one is the headline goal from `VISION.md`, following a
-person. Each step is small and ends with something you can see. Update
-the status as steps land.
+person. Each step is small and ends with something you can see.
+The side quests at the end are still open ideas.
 
 | # | Step | Status |
 |---|------|--------|

@@ -53,7 +53,7 @@ Principles:
   other heavy perception (person detection, following) run on the PC,
   which gets compressed camera frames over ROS 2 and sends back
   detections. Nothing safety-relevant depends on the PC
-  (`docs/camera-plan.md`).
+  (`docs/archive/camera-plan.md`).
 - **Use standard ROS 2 message types where they fit** (`geometry_msgs/Twist`,
   `sensor_msgs/Imu`, `sensor_msgs/JointState`, diagnostics), so stock
   tooling (`ros2 topic`, rosbag, RViz) works without custom glue. Only
@@ -76,7 +76,7 @@ Principles:
   shows googly eyes, drawn on the GPU, that roll with the IMU, react to
   touch and show the robot's state (`docs/archive/face-plan.md`).
 - **Camera:** a Dell WB3023 USB webcam works on the board (MJPEG up
-  to 2560x1440); plan in `docs/camera-plan.md`.
+  to 2560x1440); the finished plan is `docs/archive/camera-plan.md`.
 - **Coming soon:** one SimpleFOC board and one BLDC motor, so the first
   motor work is a single motor on the bench.
 - **ROS 2 distribution:** Jazzy (LTS), from meta-ros on scarthgap.

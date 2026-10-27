@@ -14,7 +14,7 @@ the room in `docs/hardware.md`, "M4 memory budget", for the M4 step.
 |---|------|--------|
 | 1 | Plant model and simulator on the host, tests of the model itself | done |
 | 2 | LQR gains from a small Python script | done |
-| 3 | Controller as plain C, closed-loop tests against the simulator | todo |
+| 3 | Controller as plain C, closed-loop tests against the simulator | done |
 | 4 | Robustness: wrong parameters, noise, delay, limits | todo |
 | 5 | Controller on the M4 with the real IMU, no motor | todo |
 
@@ -98,19 +98,36 @@ Done: `tests/balance/lqr.py` in DontFall-M4 writes
 
 ## Step 3: controller and closed-loop tests
 
-- `app/src/balance.c`/`.h`, plain C: input θ, θ̇, ω and armed, output
-  torque, clamped to the motor's limit. Zero when disarmed, and its
-  state reset on arming.
+Done: `app/src/balance.c`/`.h` in DontFall-M4 (not in the firmware build
+yet, that is step 5), tests in `tests/balance/src/control_test.c`.
+
+- Plain C: input θ, θ̇, ω and armed, output torque = -k·x clamped to
+  the motor's limit. Zero when disarmed and on a NaN or infinite input.
+  Pure state feedback keeps no state, so there is nothing to reset on
+  arming.
 - θ̇ straight from the gyro (bias removed), not from the filter: the
-  tilt filter's 0.5 s time constant is for the angle.
-- Which IMU axis is θ: through the `mount` matrix in `tilt.c`
-  (identity until the robot exists), not hard-coded.
-- Tests (control logic, so a critical part): recovers from 5° to within
-  0.5° in a set time; recovers from a push (an impulse on the body);
-  wheel speed returns towards zero; disarmed gives zero torque; the
-  output never exceeds the limit. Check the tests can fail (e.g. flip
-  the sign of k1).
-- Done when: the tests pass and a plot of a recovery looks right.
+  tilt filter's 0.5 s time constant is for the angle. Which IMU axis is
+  θ, and its sign, is step 5's job (through the `mount` matrix in
+  `tilt.c`).
+- Tests on the nonlinear simulator with the guessed parameters, the
+  controller seeing the true state:
+  - from 5°: swings through upright to -0.95° while it spins the wheel
+    down, under 0.5° from 0.9 s on (test: under 1.5°, then under 0.5°
+    after 1 s); peaks at 181 mN m and 21 rad/s like the linear design;
+  - a push to 0.5 rad/s from upright: within 0.83°, settled by 0.75 s;
+  - the wheel spins back down to under 1 rad/s;
+  - a 0.5° IMU offset: the robot still stands truly upright and the
+    wheel holds a steady k0 offset / k2 = 11 rad/s. With k2 = 0 (PD on
+    θ alone, the hobby alternative) it settles at the wrong angle and
+    the wheel speeds up at 16 rad/s² for good: why the ω term is there.
+    It also means the upright reference must be calibrated: every 0.5°
+    of error costs 11 rad/s of wheel speed;
+  - disarmed gives zero; the output never exceeds the limit; NaN and
+    infinity give zero.
+- The tests can fail: a flipped k1 or k3 fails 5 of the 6, a third of k2
+  fails the recovery and the push.
+- Plots: `-x=BALANCE_CSV=1`, then `plot.py recover`, `push`, `offset`,
+  `offset_no_omega`.
 
 ## Step 4: robustness
 

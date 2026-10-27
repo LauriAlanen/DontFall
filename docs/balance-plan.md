@@ -15,7 +15,8 @@ the room in `docs/hardware.md`, "M4 memory budget", for the M4 step.
 | 1 | Plant model and simulator on the host, tests of the model itself | done |
 | 2 | LQR gains from a small Python script | done |
 | 3 | Controller as plain C, closed-loop tests against the simulator | done |
-| 4 | Robustness: wrong parameters, noise, delay, limits | todo |
+| 4a | Robustness: wrong parameters, real sensors, delay, motor lag | done |
+| 4b | Limits: largest catch, supervisor limits, flywheel size | todo |
 | 5 | Controller on the M4 with the real IMU, no motor | todo |
 
 ## Why simulate first
@@ -132,18 +133,50 @@ yet, that is step 5), tests in `tests/balance/src/control_test.c`.
 ## Step 4: robustness
 
 Real hardware differs from the model; find out by how much it can
-before it falls.
+before it falls. To get a feel for it first: `tests/balance/sandbox.py`
+(on the PC), the simulated robot live with sliders for all of the below.
 
-- Parameters off by ±30% from what the controller was designed for.
-- Gyro noise and leftover bias from imu-plan step 5 (std ~1.5 mrad/s,
-  bias residual), accel noise through the tilt filter, one sample of
-  delay, torque that lags the command (a first-order lag standing in for
-  the FOC current loop).
+### 4a: wrong parameters, real sensors, delay, lag (done)
+
+`tests/balance/src/robust_test.c` in DontFall-M4. Unlike step 3 the
+controller doesn't see the true state: a simulated IMU reads gravity,
+the body's own acceleration at its height, noise (gyro std 1.5 mrad/s,
+accel 0.025 m/s², imu-plan step 5) and a gyro bias 5x what calibration
+leaves, and the firmware's `tilt.c` turns that into θ. The torque
+arrives one sample late, through a 2 ms first-order lag for the FOC
+current loop.
+
+- **With the measured IMU** it recovers from 5° and stands to under 0.5°
+  (actually ~0.02°), wheel back near 0.
+- **The accelerometer is fooled by the body's own motion.** Falling
+  freely with the IMU at the centre of mass it sees only
+  1 - m l² / (I_b + m l²) = 19% of the tilt. Released at 5° with a
+  filter that was started on that reading, the controller thought it
+  was at 1° and recovered badly. So: **arm while holding it still** and
+  let the filter settle (the tests hold it 2 s, 4 τ, first). Step 5 and
+  the supervisor's arming should keep this in mind.
+- IMU at the pivot, the centre of mass or twice that high: all stand.
+- **Wrong parameters are the weak spot**, not delay or lag. Mass, centre
+  of mass height and wheel inertia each 25% off in every combination:
+  all stand. The worst way is heavier and taller with a lighter wheel
+  (more gravity torque, less wheel): poles -9.0 ± 2.9j become
+  -1.1 ± 5.9j /s at 25%, a 1 Hz wobble. At 30% that way it falls (a
+  test pins this down); with the true state it barely stands
+  (-0.27 ± 6.1j), the accelerometer takes the rest. So **measure the
+  real robot's parameters and rerun `lqr.py`** rather than trust the
+  guesses, or design the gains for a heavier robot than expected.
+- **Delay and lag have a big margin**: 20 samples (24 ms) of delay plus
+  20 ms of motor lag together still stand (settles in ~3 s, wheel to
+  45 rad/s instead of 21). Alone it falls past ~50 ms of delay or ~90 ms
+  of lag (sandbox, ideal sensors). The real loop has ~1 ms of each.
+
+### 4b: limits (todo)
+
 - Torque and wheel speed limits: the largest start angle and push it can
   still catch. This gives the supervisor's tilt limit and a "saturated
   too long" disarm condition (failsafe plan, step 1).
-- Use it to pick a flywheel size for the motor's torque, before
-  building anything.
+- Use it to pick a flywheel size for the motor's torque and speed,
+  before building anything.
 - Done when: the limits are written down here and covered by tests.
 
 ## Step 5: on the M4, no motor

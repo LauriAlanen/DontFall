@@ -16,7 +16,7 @@ the room in `docs/hardware.md`, "M4 memory budget", for the M4 step.
 | 2 | LQR gains from a small Python script | done |
 | 3 | Controller as plain C, closed-loop tests against the simulator | done |
 | 4a | Robustness: wrong parameters, real sensors, delay, motor lag | done |
-| 4b | Limits: largest catch, supervisor limits, flywheel size | todo |
+| 4b | Limits: largest catch, supervisor limits, flywheel size | done |
 | 5 | Controller on the M4 with the real IMU, no motor | todo |
 
 ## Why simulate first
@@ -170,14 +170,41 @@ current loop.
   45 rad/s instead of 21). Alone it falls past ~50 ms of delay or ~90 ms
   of lag (sandbox, ideal sensors). The real loop has ~1 ms of each.
 
-### 4b: limits (todo)
+### 4b: limits, supervisor, flywheel (done)
 
-- Torque and wheel speed limits: the largest start angle and push it can
-  still catch. This gives the supervisor's tilt limit and a "saturated
-  too long" disarm condition (failsafe plan, step 1).
-- Use it to pick a flywheel size for the motor's torque and speed,
-  before building anything.
-- Done when: the limits are written down here and covered by tests.
+With the guessed motor: 0.2 N m and a top speed of 60 rad/s, its torque
+falling linearly to 0 there (back-EMF). Both are guesses until the
+GM4108H's datasheet numbers are in; rerun `flywheel.py --t-max --w-top`
+and the searches behind the tests then.
+
+- **The motor runs out of speed, not torque.** Torque alone would catch
+  16° (asin(τ_max / m g l)); the 60 rad/s top speed cuts it to about 9°.
+- With the measured IMU (`robust_test.c`): caught from rest up to 8.5°,
+  falls from 9°; a push from upright caught up to 1.2 rad/s (it leans
+  to 6°), not 1.3.
+- **Supervisor:** `SUPERVISOR_DISARM_TILT` goes from the 25° guess to
+  15°, past anything it can catch with room for a better flywheel; past
+  it, staying armed only spins the wheel up. The 5° arm limit is inside
+  the catch limit. The dashboard's tilt panel draws the new ring.
+- **Saturated too long:** every catch keeps the command at the limit for
+  under 0.18 s, every fall for over 0.31 s before it reaches the disarm
+  tilt. 0.25 s is the proposed threshold, for step 5. It also covers
+  what the tilt check can't see: the robot pinned against something,
+  leaning a little with the wheel at full speed.
+- **Wrong sizes and the speed limit add up:** the worst ±25% corner
+  (heavier, taller, lighter wheel) wobbles at up to 63 rad/s and falls
+  with the 60 rad/s motor. The parameter tests run without a top speed
+  to see the gains alone.
+- **Flywheel:** `tests/balance/flywheel.py` builds the robot for each
+  ring flywheel (mass 50-400 g, radius 3-8 cm; the rest of the robot
+  0.45 kg, centre of mass 10 cm, wheel centre at 17 cm, all guesses),
+  redesigns the gains and finds the largest catch and push. Radius
+  matters most (inertia goes with r², so less speed for the same
+  momentum). Mass has a sweet spot around 100-150 g: past that its
+  weight at the top adds more gravity torque than it helps.
+  **Pick: a 100-150 g ring at 7-8 cm radius, mass at the rim**: about
+  11.6° and 1.7 rad/s (ideal sensors), against 9.4° for the 150 g, 6 cm
+  guess. As big as the frame allows.
 
 ## Step 5: on the M4, no motor
 
@@ -191,6 +218,12 @@ current loop.
   torque must push back against the tilt (this checks the sign through
   the whole chain), grow with the angle, and go to zero on disarm or
   past the limit.
+- Arm only while held still near upright, so the tilt filter has
+  settled on the true angle (step 4a: a falling body fools the
+  accelerometer).
+- Add the "saturated too long" disarm condition to the supervisor
+  (0.25 s, step 4b): a `saturated` field in `supervisor_input`, its own
+  disarm reason, tests in `tests/supervisor`.
 - Measure the loop's time on the M4 and note the code size.
 - Done when: those checks pass.
 

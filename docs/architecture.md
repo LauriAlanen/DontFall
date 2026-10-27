@@ -56,23 +56,26 @@ see "Keeping this up to date" at the end.
 |  | ipc.c: rpmsg-tty               |   | link_led.c                       |  |
 |  | uros.c (prio 5), node          |-->| LD7 on while the Agent session   |  |
 |  | dontfall_m4: imu, arm,         |   | is up                            |  |
-|  | cmd_vel, diagnostics           |   +----------------------------------+  |
+|  | cmd_vel, diagnostics,          |   +----------------------------------+  |
+|  | joint_states (wheel torque)    |                                         |
 |  +---------------+----------------+                                         |
-|                  | arm, cmd_vel ^ state                                     |
+|                  | arm, cmd_vel ^ state, torque                             |
 |  +---------------v--------------+-+   +----------------------------------+  |
 |  | control.c + supervisor.c       |<--| imu.c (prio 7, 850 Hz)           |  |
 |  | arm/disarm, tilt limit, IMU    |   | tilt.c filter, imu_health.c      |  |
-|  | faults, cmd_vel timeout        |   +----------------+-----------------+  |
-|  +--------------------------------+                    | SPI5 + INT1 (EXTI3)|
+|  | faults, saturation, cmd_vel    |   +----------------+-----------------+  |
+|  | timeout; balance.c (LQR) on    |                    | SPI5 + INT1 (EXTI3)|
+|  | every sample, torque to a stub |                    |                    |
+|  +--------------------------------+                    |                    |
 |  wdog.c: WWDG1, 100 ms, kicked only while every source checks in           |
 +--------------------------------------------------------+--------------------+
                                                          |
                                        LSM6DSOX IMU (Arduino Modulino Movement)
 
- Planned, not built yet (docs/foc-plan.md, docs/balance-plan.md,
- docs/archive/camera-plan.md):
-   M4: FOC for the motors and the balance controller, the AS5048A encoder
-   on SPI, SimpleFOCMini drivers (PWM).
+ Planned, not built yet (docs/foc-plan.md, docs/balance-plan.md):
+   M4: FOC for the motors (the balance controller's torque goes to a
+   stub until then), the AS5048A encoder on SPI (wheel speed, 0 until
+   then), SimpleFOCMini drivers (PWM).
 ```
 
 ## The ROS 2 interface of the M4
@@ -83,6 +86,7 @@ the A7 and the M4's control code.
 | Name | Kind, type | QoS | Direction | Purpose |
 |------|------------|-----|-----------|---------|
 | `/dontfall_m4/imu` | publisher, `sensor_msgs/Imu` | best effort, 50 Hz | M4 -> A7 | IMU data and tilt estimate |
+| `/dontfall_m4/joint_states` | publisher, `sensor_msgs/JointState` | best effort, 50 Hz | M4 -> A7 | joint `wheel`: effort = the torque the balance controller wants (N m); no position or velocity until there is an encoder |
 | `/diagnostics` | publisher, `diagnostic_msgs/DiagnosticArray` | reliable, 1 Hz | M4 -> A7 | IMU and supervisor state |
 | `/dontfall_m4/arm` | service, `std_srvs/SetBool` | reliable | A7 -> M4 | arm (true) or disarm (false) |
 | `/cmd_vel` | subscription, `geometry_msgs/Twist` | best effort | A7 -> M4 | speed setpoint, zeroed after a timeout |
@@ -114,8 +118,8 @@ the PC only). Nothing on the robot depends on them.
 ## Who owns what
 
 - **M4:** everything timing critical and every safety decision: the IMU,
-  the supervisor (armed or not), the command timeout, the watchdog, and
-  later the motors and balancing. It must stay safe with the A7 dead.
+  the supervisor (armed or not), the command timeout, the watchdog, the
+  balance controller, and later the motors. It must stay safe with the A7 dead.
 - **A7:** the micro-ROS Agent, the app (ROS 2 node `dontfall_app`), the face
   (ROS 2 node `dontfall_face`, only listens), the camera (node `camera`,
   only forwards the camera's own JPEGs), and later everything high

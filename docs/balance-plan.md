@@ -17,7 +17,7 @@ the room in `docs/hardware.md`, "M4 memory budget", for the M4 step.
 | 3 | Controller as plain C, closed-loop tests against the simulator | done |
 | 4a | Robustness: wrong parameters, real sensors, delay, motor lag | done |
 | 4b | Limits: largest catch, supervisor limits, flywheel size | done |
-| 5 | Controller on the M4 with the real IMU, no motor | todo |
+| 5 | Controller on the M4 with the real IMU, no motor | done |
 
 ## Why simulate first
 
@@ -208,24 +208,35 @@ and the searches behind the tests then.
 
 ## Step 5: on the M4, no motor
 
-- Run the controller in the IMU sampling path (or a thread woken by
-  it, decide here by measuring the time it takes), behind the
-  supervisor. The motor is a stub that only stores the torque.
-- ω is 0 until there is an encoder; say so in the code.
-- Publish the commanded torque and θ for plotting, on the status topic
-  from the failsafe plan (or a temporary one).
-- Bench: arm with the module flat, tilt it by hand in PlotJuggler: the
-  torque must push back against the tilt (this checks the sign through
-  the whole chain), grow with the angle, and go to zero on disarm or
-  past the limit.
-- Arm only while held still near upright, so the tilt filter has
-  settled on the true angle (step 4a: a falling body fools the
-  accelerometer).
-- Add the "saturated too long" disarm condition to the supervisor
-  (0.25 s, step 4b): a `saturated` field in `supervisor_input`, its own
-  disarm reason, tests in `tests/supervisor`.
-- Measure the loop's time on the M4 and note the code size.
-- Done when: those checks pass.
+Done. In DontFall-M4:
+
+- `control.c` runs the controller on every IMU sample, right after the
+  supervisor, under the same lock: θ the filter's pitch, θ̇ the gyro's
+  pitch rate (bias removed, `tilt.c` keeps it as `pitch_rate`), ω 0 until
+  there is an encoder (`WHEEL_SPEED`). The motor is a stub that only
+  stores the torque; the limit is the 0.2 N m guess (`TORQUE_MAX`).
+- Supervisor: arming needs |pitch rate| ≤ 0.2 rad/s (`moving` refusal),
+  so the filter is on the true angle (step 4a); a new disarm reason
+  `saturated` after 0.25 s with the output at its limit (step 4b). Tests
+  in `tests/supervisor` for both.
+- Telemetry: `/dontfall_m4/joint_states`, `sensor_msgs/JointState`, joint
+  `wheel`, effort = the torque, 50 Hz best effort. θ is the pitch in
+  `/dontfall_m4/imu`. The Foxglove layout has a "Balance" plot of both
+  (pitch in rad and torque in N m share a scale).
+- Loop time on the M4 (supervisor + controller, with the lock): at most
+  12.3 µs, ~1% of the 1176 µs sample period, so it stays in the sampling
+  path. Code: FLASH +4.8 KB (71.3%), RETRAM +0.2 KB (79.7%), RAM +2.3 KB
+  (58.5%), mostly the JointState publisher.
+- Bench (2026-10-27, 4 min, module tilted by hand, recorded from the PC):
+  armed 37 times, refused with `moving` 9 times and `tilt` outside 5°,
+  disarmed with `saturated` when held past ~6°. Fitting the published
+  torque to the published pitch and rate gives k = 2.074 and 0.248
+  (firmware 2.075 and 0.248), 1.2 mN m rms off; the torque had the sign
+  of the pitch in every still sample past 1°. Roll gives no torque but
+  counts for the supervisor's tilt limits (any direction).
+- Not checked yet, needs the motor: which way the real wheel turns for
+  positive torque. That is the first thing to check when it is wired,
+  with the robot held and the torque limit low.
 
 ## Open questions
 

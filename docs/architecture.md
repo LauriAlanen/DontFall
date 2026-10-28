@@ -72,7 +72,7 @@ see "Keeping this up to date" at the end.
                                                          |
                                        LSM6DSOX IMU (Arduino Modulino Movement)
 
- Planned, not built yet (docs/foc-plan.md, docs/balance-plan.md):
+ Planned, not built yet (docs/foc-plan.md):
    M4: FOC for the motors (the balance controller's torque goes to a
    stub until then), the AS5048A encoder on SPI (wheel speed, 0 until
    then), SimpleFOCMini drivers (PWM).

@@ -156,4 +156,4 @@ putting out the last duties, and a motor would keep getting voltage.
   scope (a phase output plus a GPIO toggled at the ADC trigger or in
   its end-of-conversion interrupt).
 - Current PI loops, then torque control for the balance controller
-  (`docs/balance-plan.md`).
+  (`docs/archive/balance-plan.md`).

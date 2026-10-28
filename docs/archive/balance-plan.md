@@ -1,11 +1,12 @@
 # Balance controller plan
 
-Working plan for the balance controller before there are motors: design
+Finished plan (all steps done, 2026-10-28; the open questions at the end
+are still open) for the balance controller before there are motors: design
 and test it against a simulated robot on the host, then run it on the M4
 with the real IMU and no motor. The target is the first bench robot from
 `docs/hardware.md`: a free-standing reaction wheel balancer (one motor
 with a flywheel on top, tilt from the IMU). Each step is small and ends
-with something you can see. Update the status as steps land.
+with something you can see.
 
 Uses the supervisor from `docs/archive/failsafe-plan.md` (armed or not) and needs
 the room in `docs/hardware.md`, "M4 memory budget", for the M4 step.
@@ -240,6 +241,10 @@ Done. In DontFall-M4:
 
 ## Open questions
 
+Answered: the loop runs on every IMU sample (12 µs of the 1176 µs period,
+step 5); no Kalman filter for now, step 4 showed wrong parameters limit
+it, not the angle estimate.
+
 - A local stop button that works without the A7, before a motor runs
   (from the failsafe plan). The DK2's USER1/USER2 buttons share pins
   with LD5/LD6; who owns them is not checked yet.
@@ -248,10 +253,6 @@ Done. In DontFall-M4:
 - The GM4108H's top speed at the supply voltage: a 5° recovery already
   needs ~21 rad/s on the wheel with the guessed sizes, and a gimbal
   motor is slow. A heavier wheel needs less speed.
-- Loop rate: every IMU sample (850 Hz) or every second one. Decide in
-  step 5 from the measured time.
-- Kalman filter instead of the complementary filter, if step 4 shows the
-  angle estimate is what limits it.
 - Where the IMU sits on the robot, once there is one; close to the pivot
   axis keeps linear acceleration from fooling the accelerometer.
 - Whether the IMU's INT2 is needed at all (e.g. for FIFO or free-fall).

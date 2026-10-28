@@ -582,5 +582,5 @@ Imu topic ~49 Hz on the PC. VISION.md lists the IMU as decided.
 ## Open questions
 
 Moved when the plan was archived: the balance loop rate, where the IMU
-sits and INT2 to `docs/balance-plan.md`; code space was solved by the M4
+sits and INT2 to `docs/archive/balance-plan.md`; code space was solved by the M4
 memory plan (budget in `docs/hardware.md`).

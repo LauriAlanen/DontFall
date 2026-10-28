@@ -312,5 +312,5 @@ Done (DontFall-M4, DontFall-app, the image). How it ended up:
 
 ## Open questions
 
-Still open, moved to `docs/balance-plan.md`: a local stop button, and
+Still open, moved to `docs/archive/balance-plan.md`: a local stop button, and
 whether arming needs more than one ROS call.

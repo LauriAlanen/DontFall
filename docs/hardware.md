@@ -211,3 +211,15 @@ First bench target, once the IMU and the motor work on their own: a
 free-standing reaction wheel balancer (one motor with a flywheel on top,
 tilt from the IMU, no pivot encoder). Pins are
 not assigned yet.
+
+## Mechanical
+
+Key sizes for the 3D model (`docs/cad-plan.md` step 1); the models are
+in DontFall-cad `parts/`. "Unchecked" until measured on the part.
+
+| Part | Size | Mounting | Source | Checked |
+|------|------|----------|--------|---------|
+| DK2 PCB | 101 x 71 x 1.6 mm | 4x Ø3.5 (M3), 58 x 49 mm apart, at (24.25, 18.5) from the PCB corner | user-made STEP | no |
+| DK2 + MB1407 display | 112 x 65 x 10 mm display block, 18 mm above the PCB on the standoffs; whole stack 112 x 75 x 39 mm (Arduino sockets 11.4 mm below the PCB) | the standoffs on the PCB's holes | user-made STEP | no |
+| Modulino Movement | 41 x 25.36 x 1.6 mm, Qwiic connectors 2.97 mm tall | 4x Ø3.2, 32 x 16 mm apart, centred | datasheet 7.4 | no |
+| LSM6DSOX on the Modulino | at the board's centre; x towards a Qwiic connector, y towards the 4-pin header, z out of the component side | | datasheet 7.4 | no |

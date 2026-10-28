@@ -12,7 +12,7 @@ Update the status as steps land.
 | # | Step | Status |
 |---|------|--------|
 | 0 | Repo, pinned build123d, one test part, renders the agent can read | done |
-| 1 | Bought parts as simple models, sizes from datasheets and calipers | todo |
+| 1 | Bought parts as simple models, sizes from datasheets and calipers | in progress |
 | 2 | Shared sizes and the check script (overlaps, print bed, walls) | todo |
 | 3 | Flywheel: ring on the GM4108H, inertia from the model | todo |
 | 4 | Balancer body: motor at the top, IMU, pivot edge | todo |
@@ -107,6 +107,14 @@ with its AS5048A, SimpleFOCMini v2.3, Modulino Movement, the webcam.
   masses (weighed where on hand), the same way pins are recorded.
 - Done when: all on-hand parts are checked against the calipers and
   shown together in the viewer.
+
+Status: `parts/dk2.py` (DK2 with the MB1407 display) from a user-made
+STEP model, `parts/modulino_movement.py` from the datasheet's drawing,
+both unchecked; sizes in `docs/hardware.md`, "Mechanical". The STEP's
+display standoffs are 1.75 mm off its PCB holes, so it isn't exact; the
+envelope puts them on the holes. `show.py` draws an envelope over its
+vendor model in the viewer. Left: calipers on both, the webcam, and the
+motor and driver when they arrive.
 
 ## Step 2: shared sizes and checks
 

@@ -13,7 +13,7 @@ Update the status as steps land.
 |---|------|--------|
 | 0 | Repo, pinned build123d, one test part, renders the agent can read | done |
 | 1 | Bought parts as simple models, sizes from datasheets and calipers | in progress |
-| 2 | Shared sizes and the check script (overlaps, print bed, walls) | todo |
+| 2 | Shared sizes and the check script (overlaps, print bed, walls) | in progress |
 | 3 | Flywheel: ring on the GM4108H, inertia from the model | todo |
 | 4 | Balancer body: motor at the top, IMU, pivot edge | todo |
 | 5 | Model to plant parameters for the balance gains | todo |
@@ -135,6 +135,13 @@ or lying down.
   assembly.
 - Done when: the coupon is printed and its best clearances are in
   `params.py`.
+
+Status: `params.py` has the printer's volume and the M3 sizes (screws
+held by heat-set inserts), `check.py` says whether a part fits the
+printer. `parts/coupon.py`: M3 through holes 3.0-3.6 mm and insert
+bosses with 6 mm deep holes 3.8-4.4 mm, sizes engraved; ~8 g. Overlap
+checks wait for the first assembly (step 4). Left: print it, try a
+screw and inserts, put the winners in `params.py`.
 
 ## Step 3: flywheel
 

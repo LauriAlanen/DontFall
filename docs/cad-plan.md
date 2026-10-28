@@ -110,11 +110,13 @@ with its AS5048A, SimpleFOCMini v2.3, Modulino Movement, the webcam.
 
 Status: `parts/dk2.py` (DK2 with the MB1407 display) from a user-made
 STEP model, `parts/modulino_movement.py` from the datasheet's drawing,
-both unchecked; sizes in `docs/hardware.md`, "Mechanical". The STEP's
+both checked with calipers; sizes in `docs/hardware.md`, "Mechanical".
+The Modulino's SPI wires are soldered on the chip side, so it has an
+8 mm keep-out above both pad rows. The STEP's
 display standoffs are 1.75 mm off its PCB holes, so it isn't exact; the
 envelope puts them on the holes. `show.py` draws an envelope over its
-vendor model in the viewer. Left: calipers on both, the webcam, and the
-motor and driver when they arrive.
+vendor model in the viewer. Left: the webcam, and the motor and driver
+when they arrive.
 
 ## Step 2: shared sizes and checks
 

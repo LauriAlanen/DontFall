@@ -11,7 +11,7 @@ Update the status as steps land.
 
 | # | Step | Status |
 |---|------|--------|
-| 0 | Repo, pinned build123d, one test part, renders the agent can read | in progress |
+| 0 | Repo, pinned build123d, one test part, renders the agent can read | done |
 | 1 | Bought parts as simple models, sizes from datasheets and calipers | todo |
 | 2 | Shared sizes and the check script (overlaps, print bed, walls) | todo |
 | 3 | Flywheel: ring on the GM4108H, inertia from the model | todo |
@@ -88,7 +88,9 @@ test part `parts/test_block.py` (40 x 20 x 10 mm, M3 hole, 3 mm rounded
 corners) builds to STEP, STL and PNG; `check.py` gives 7832 mm³, the
 same as by hand. Renders: trimesh into matplotlib, four orthographic
 views in one PNG, flat shaded, no GPU needed; the agent read the part
-correctly from it. Left: the developer sees it in OCP CAD Viewer.
+correctly from it. The developer sees it in OCP CAD Viewer; the viewer
+tab has to be open in VS Code before `show()` (else it fails with a
+`Port ... 'None'` traceback).
 
 ## Step 1: bought parts
 
@@ -108,8 +110,14 @@ with its AS5048A, SimpleFOCMini v2.3, Modulino Movement, the webcam.
 
 ## Step 2: shared sizes and checks
 
+The printer is a Bambu Lab A1 mini: 180 x 180 x 180 mm build volume,
+no enclosure (PLA and PETG are fine, ABS/ASA warp). That bounds every
+part: the flywheel's 7-8 cm radius from the balance plan is a 140-160 mm
+disc, which fits; a body taller than 180 mm must be printed in pieces
+or lying down.
+
 - `params.py`: fastener choice (e.g. M3 with heat-set inserts), wall
-  thickness, print clearances, the printer's bed size. One place, so a
+  thickness, print clearances, the printer's build volume (180 mm cube). One place, so a
   change ripples through every part.
 - A test coupon (holes, insert bosses, a slot at a few clearances),
   printed to find the right clearances for this printer.
@@ -173,7 +181,6 @@ wheel turning, live or from a bag.
 
 ## Open questions
 
-- Which 3D printer (bed size, materials), or a print service?
 - On the balancer: does the DK2 ride on the body, or stay on the bench
   with cables to the IMU, driver and motor? Cables pull on a small
   balancer; a board on top adds a lot of mass up high.

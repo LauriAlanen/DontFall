@@ -11,7 +11,7 @@ Update the status as steps land.
 
 | # | Step | Status |
 |---|------|--------|
-| 0 | Repo, pinned build123d, one test part, renders the agent can read | todo |
+| 0 | Repo, pinned build123d, one test part, renders the agent can read | in progress |
 | 1 | Bought parts as simple models, sizes from datasheets and calipers | todo |
 | 2 | Shared sizes and the check script (overlaps, print bed, walls) | todo |
 | 3 | Flywheel: ring on the GM4108H, inertia from the model | todo |
@@ -81,6 +81,14 @@ stay the developer's call at every step, and a test print settles them.
   `docs/architecture.md` if it lists repos.
 - Done when: the developer sees the test part in the viewer and the
   agent describes the same part from its PNG.
+
+Status: `~/Projects/DontFall-cad` exists (local git, not on GitHub
+yet), build123d 0.13.0 with every package pinned by `pip freeze`. The
+test part `parts/test_block.py` (40 x 20 x 10 mm, M3 hole, 3 mm rounded
+corners) builds to STEP, STL and PNG; `check.py` gives 7832 mm³, the
+same as by hand. Renders: trimesh into matplotlib, four orthographic
+views in one PNG, flat shaded, no GPU needed; the agent read the part
+correctly from it. Left: the developer sees it in OCP CAD Viewer.
 
 ## Step 1: bought parts
 

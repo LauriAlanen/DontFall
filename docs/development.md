@@ -9,6 +9,7 @@ a running board, and how a release image is produced.
 | [DontFall-app](https://github.com/LauriAlanen/DontFall-app) | Cortex-A7, Linux | The application (`/usr/local/bin/dontfall-app`) |
 | [DontFall-M4](https://github.com/LauriAlanen/DontFall-M4) | Cortex-M4, Zephyr | Coprocessor firmware (`/lib/firmware/dontfall-m4.elf`) |
 | [DontFall-dashboard](https://github.com/LauriAlanen/DontFall-dashboard) | PC | Foxglove layouts and panels (`docs/archive/dashboard-plan.md`) |
+| DontFall-cad (local only, not on GitHub yet) | PC | The 3D model as code, build123d (`docs/cad-plan.md`) |
 
 The A7 and M4 talk over OpenAMP: the M4 firmware announces an `rpmsg-tty`
 channel, which Linux exposes as `/dev/ttyRPMSG0`.
@@ -25,6 +26,7 @@ working tree and pushed to a running board in seconds - no reflash.
     build-stm32mp157c-dk2/
       conf/dev.conf            your dev overrides (not in git)
   DontFall-app/                A7 app repo
+  DontFall-cad/                3D model repo (build123d)
   DontFall-dashboard/          PC dashboard repo (Foxglove)
   DontFall-M4-ws/              west workspace for the M4 (not a git repo)
     DontFall-M4/               M4 repo
